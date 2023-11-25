@@ -10,7 +10,7 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use std::path::Path;
 use std::rc::Rc;
-use std::{fs, io, iter, mem, panic};
+use std::{io, iter, mem, panic};
 
 use crossterm::event::{
     DisableMouseCapture, EnableMouseCapture, KeyCode, KeyEvent, KeyEventKind, KeyModifiers,
@@ -29,7 +29,7 @@ use ratatui::{backend::CrosstermBackend, Terminal};
 use tracing::warn;
 use unicode_width::UnicodeWidthStr;
 
-use crate::consts::{DUMP_UI_STATE_FILENAME, ENV_VAR_DEBUG_UI, ENV_VAR_DUMP_UI_STATE};
+use crate::consts::ENV_VAR_DEBUG_UI;
 use crate::render::{
     centered_rect, Component, DrawnRect, DrawnRects, Mask, Rect, RectSize, Viewport,
 };
@@ -465,10 +465,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
     /// changes.
     pub fn run(self) -> Result<RecordState<'state>, RecordError> {
         #[cfg(feature = "debug")]
-        if std::env::var_os(ENV_VAR_DUMP_UI_STATE).is_some() {
+        if std::env::var_os(crate::consts::ENV_VAR_DUMP_UI_STATE).is_some() {
             let ui_state =
                 serde_json::to_string_pretty(&self.state).map_err(RecordError::SerializeJson)?;
-            fs::write(DUMP_UI_STATE_FILENAME, ui_state).map_err(RecordError::WriteFile)?;
+            std::fs::write(crate::consts::DUMP_UI_STATE_FILENAME, ui_state)
+                .map_err(RecordError::WriteFile)?;
         }
 
         match self.input.terminal_kind() {

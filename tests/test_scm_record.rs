@@ -9,9 +9,15 @@ use scm_record::{
     SectionChangedLine, TestingScreenshot,
 };
 
+#[cfg(feature = "serde")]
 fn example_contents() -> RecordState<'static> {
     let example_contents = include_str!("example_contents.json");
     serde_json::from_str(example_contents).unwrap()
+}
+
+#[cfg(not(feature = "serde"))]
+fn example_contents() -> RecordState<'static> {
+    panic!("tests require `serde` feature")
 }
 
 #[test]

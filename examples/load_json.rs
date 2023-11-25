@@ -1,16 +1,25 @@
 #![warn(clippy::all, clippy::as_conversions)]
 #![allow(clippy::too_many_arguments, clippy::blocks_in_if_conditions)]
 
-use std::fs::File;
+use std::path::Path;
 
 use scm_record::{helpers::CrosstermInput, RecordError, RecordState, Recorder, SelectedContents};
+
+#[cfg(feature = "serde")]
+fn load_state(path: impl AsRef<Path>) -> RecordState<'static> {
+    let json_file = std::fs::File::open(path).expect("opening JSON file");
+    serde_json::from_reader(json_file).expect("deserializing state")
+}
+
+#[cfg(not(feature = "serde"))]
+fn load_state(_path: impl AsRef<Path>) -> RecordState<'static> {
+    panic!("load_json example requires `serde` feature")
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let json_filename = args.get(1).expect("expected JSON dump as first argument");
-    let json_file = File::open(json_filename).expect("opening JSON file");
-    let record_state: RecordState =
-        serde_json::from_reader(json_file).expect("deserializing state");
+    let record_state: RecordState = load_state(json_filename);
 
     let mut input = CrosstermInput;
     let recorder = Recorder::new(record_state, &mut input);

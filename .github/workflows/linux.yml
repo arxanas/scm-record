@@ -33,25 +33,12 @@ jobs:
       # Don't test benches.
       - name: Run Rust tests (all features)
         timeout-minutes: 30
-        run: |
-          export TEST_GIT="$PWD"/git
-          export TEST_GIT_EXEC_PATH=$(dirname "$TEST_GIT")
-          cargo test --all-features --examples --tests --workspace
+        run: cargo test --all-features --examples --tests --workspace
 
       # Note that `--doc` can't be combined with other tests.
       - name: Run Rust doc-tests (all features)
         timeout-minutes: 30
-        run: |
-          export TEST_GIT="$PWD"/git
-          export TEST_GIT_EXEC_PATH=$(dirname "$TEST_GIT")
-          cargo test --all-features --doc --workspace
+        run: cargo test --all-features --doc --workspace
 
       - name: Compile (no features)
         run: cargo build --no-default-features --all-targets --workspace
-
-      - name: Run Rust tests (no default features)
-        timeout-minutes: 30
-        run: |
-          export TEST_GIT="$PWD"/git
-          export TEST_GIT_EXEC_PATH=$(dirname "$TEST_GIT")
-          cargo test --no-default-features --examples --tests --workspace

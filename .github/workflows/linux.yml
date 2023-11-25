@@ -1,0 +1,57 @@
+name: Linux
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: 1.67.0
+          override: true
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@3cf7f8cc28d1b4e7d01e3783be10a97d55d483c8
+
+      - name: Compile (all features)
+        run: cargo build --all-features --all-targets --workspace
+
+      # Don't test benches.
+      - name: Run Rust tests (all features)
+        timeout-minutes: 30
+        run: |
+          export TEST_GIT="$PWD"/git
+          export TEST_GIT_EXEC_PATH=$(dirname "$TEST_GIT")
+          cargo test --all-features --examples --tests --workspace
+
+      # Note that `--doc` can't be combined with other tests.
+      - name: Run Rust doc-tests (all features)
+        timeout-minutes: 30
+        run: |
+          export TEST_GIT="$PWD"/git
+          export TEST_GIT_EXEC_PATH=$(dirname "$TEST_GIT")
+          cargo test --all-features --doc --workspace
+
+      - name: Compile (no features)
+        run: cargo build --no-default-features --all-targets --workspace
+
+      - name: Run Rust tests (no default features)
+        timeout-minutes: 30
+        run: |
+          export TEST_GIT="$PWD"/git
+          export TEST_GIT_EXEC_PATH=$(dirname "$TEST_GIT")
+          cargo test --no-default-features --examples --tests --workspace

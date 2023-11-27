@@ -1,5 +1,5 @@
-use std::borrow::Cow;
 use std::path::Path;
+use std::{borrow::Cow, iter};
 
 use assert_matches::assert_matches;
 use insta::{assert_debug_snapshot, assert_snapshot};
@@ -9,15 +9,92 @@ use scm_record::{
     SectionChangedLine, TestingScreenshot,
 };
 
-#[cfg(feature = "serde")]
 fn example_contents() -> RecordState<'static> {
-    let example_contents = include_str!("example_contents.json");
-    serde_json::from_str(example_contents).unwrap()
-}
-
-#[cfg(not(feature = "serde"))]
-fn example_contents() -> RecordState<'static> {
-    panic!("tests require `serde` feature")
+    RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![
+            File {
+                old_path: None,
+                path: Cow::Borrowed(Path::new("foo/bar")),
+                file_mode: None,
+                sections: vec![
+                    Section::Unchanged {
+                        lines: iter::repeat(Cow::Borrowed("this is some text\n"))
+                            .take(20)
+                            .collect(),
+                    },
+                    Section::Changed {
+                        lines: vec![
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Removed,
+                                line: Cow::Borrowed("before text 1\n"),
+                            },
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Removed,
+                                line: Cow::Borrowed("before text 2\n"),
+                            },
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Added,
+                                line: Cow::Borrowed("after text 1\n"),
+                            },
+                            SectionChangedLine {
+                                is_checked: false,
+                                change_type: ChangeType::Added,
+                                line: Cow::Borrowed("after text 2\n"),
+                            },
+                        ],
+                    },
+                    Section::Unchanged {
+                        lines: vec![Cow::Borrowed("this is some trailing text\n")],
+                    },
+                ],
+            },
+            File {
+                old_path: None,
+                path: Cow::Borrowed(Path::new("baz")),
+                file_mode: None,
+                sections: vec![
+                    Section::Unchanged {
+                        lines: vec![
+                            Cow::Borrowed("Some leading text 1\n"),
+                            Cow::Borrowed("Some leading text 2\n"),
+                        ],
+                    },
+                    Section::Changed {
+                        lines: vec![
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Removed,
+                                line: Cow::Borrowed("before text 1\n"),
+                            },
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Removed,
+                                line: Cow::Borrowed("before text 2\n"),
+                            },
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Added,
+                                line: Cow::Borrowed("after text 1\n"),
+                            },
+                            SectionChangedLine {
+                                is_checked: true,
+                                change_type: ChangeType::Added,
+                                line: Cow::Borrowed("after text 2\n"),
+                            },
+                        ],
+                    },
+                    Section::Unchanged {
+                        lines: vec![Cow::Borrowed("this is some trailing text\n")],
+                    },
+                ],
+            },
+        ],
+    }
 }
 
 #[test]
@@ -2638,5 +2715,14 @@ fn test_quit_dialog_when_commit_message_provided() -> eyre::Result<()> {
     "                                                                                "
     "###);
 
+    Ok(())
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn test_deserialize() -> eyre::Result<()> {
+    let example_json = include_str!("example_contents.json");
+    let deserialized: RecordState<'static> = serde_json::from_str(example_json)?;
+    assert_eq!(example_contents(), deserialized);
     Ok(())
 }

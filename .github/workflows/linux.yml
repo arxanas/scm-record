@@ -42,3 +42,13 @@ jobs:
 
       - name: Compile (no features)
         run: cargo build --no-default-features --all-targets --workspace
+
+      # Don't test benches.
+      - name: Run Rust tests (no features)
+        timeout-minutes: 30
+        run: cargo test --no-default-features --examples --tests --workspace
+
+      # Note that `--doc` can't be combined with other tests.
+      - name: Run Rust doc-tests (no features)
+        timeout-minutes: 30
+        run: cargo test --no-default-features --doc --workspace

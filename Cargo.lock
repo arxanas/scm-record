@@ -805,6 +805,7 @@ dependencies = [
  "maplit",
  "num-traits",
  "ratatui",
+ "regex",
  "serde",
  "serde_json",
  "sha1",

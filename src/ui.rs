@@ -2301,8 +2301,28 @@ impl Component for CommitView<'_> {
             file_views,
         } = self;
 
-        let mut y = y;
         let commit_message_view_rect = viewport.draw_component(x, y, commit_message_view);
+        if file_views.is_empty() {
+            let message = "There are no changes to view.";
+            let message_rect = centered_rect(
+                Rect {
+                    x,
+                    y,
+                    width: viewport.mask_rect().width,
+                    height: viewport.mask_rect().height,
+                },
+                RectSize {
+                    width: message.len(),
+                    height: 1,
+                },
+                50,
+                50,
+            );
+            viewport.draw_text(message_rect.x, message_rect.y, &Span::raw(message));
+            return;
+        }
+
+        let mut y = y;
         y += commit_message_view_rect.height.unwrap_isize();
         for file_view in file_views {
             let file_view_rect = {

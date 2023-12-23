@@ -2726,3 +2726,31 @@ fn test_deserialize() -> eyre::Result<()> {
     assert_eq!(example_contents(), deserialized);
     Ok(())
 }
+
+#[test]
+fn test_no_files() -> eyre::Result<()> {
+    let state = RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![],
+    };
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        6,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_display_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "                                                                                "
+    "                    There are no changes to view.                               "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}

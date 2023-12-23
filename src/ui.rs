@@ -611,8 +611,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         term.clear().map_err(RecordError::RenderFrame)?;
                     }
                     StateUpdate::EnsureSelectionInViewport => {
-                        self.scroll_offset_y =
-                            self.ensure_in_viewport(term_height, &drawn_rects, self.selection_key);
+                        if let Some(scroll_offset_y) =
+                            self.ensure_in_viewport(term_height, &drawn_rects, self.selection_key)
+                        {
+                            self.scroll_offset_y = scroll_offset_y;
+                        }
                     }
                     StateUpdate::ScrollTo(scroll_offset_y) => {
                         self.scroll_offset_y = scroll_offset_y.clamp(0, {
@@ -1316,12 +1319,20 @@ impl<'state, 'input> Recorder<'state, 'input> {
             None => return SelectionKey::None,
         };
 
-        let original_y = self.selection_key_y(drawn_rects, self.selection_key);
+        let original_y = match self.selection_key_y(drawn_rects, self.selection_key) {
+            Some(original_y) => original_y,
+            None => {
+                return SelectionKey::None;
+            }
+        };
         let target_y = original_y.saturating_sub(term_height.unwrap_isize() / 2);
         while index > 0 {
             index -= 1;
-            if self.selection_key_y(drawn_rects, keys[index]) <= target_y {
-                break;
+            let selection_key_y = self.selection_key_y(drawn_rects, keys[index]);
+            if let Some(selection_key_y) = selection_key_y {
+                if selection_key_y <= target_y {
+                    break;
+                }
             }
         }
         keys[index]
@@ -1338,12 +1349,18 @@ impl<'state, 'input> Recorder<'state, 'input> {
             None => return SelectionKey::None,
         };
 
-        let original_y = self.selection_key_y(drawn_rects, self.selection_key);
+        let original_y = match self.selection_key_y(drawn_rects, self.selection_key) {
+            Some(original_y) => original_y,
+            None => return SelectionKey::None,
+        };
         let target_y = original_y.saturating_add(term_height.unwrap_isize() / 2);
         while index + 1 < keys.len() {
             index += 1;
-            if self.selection_key_y(drawn_rects, keys[index]) >= target_y {
-                break;
+            let selection_key_y = self.selection_key_y(drawn_rects, keys[index]);
+            if let Some(selection_key_y) = selection_key_y {
+                if selection_key_y >= target_y {
+                    break;
+                }
             }
         }
         keys[index]
@@ -1440,19 +1457,24 @@ impl<'state, 'input> Recorder<'state, 'input> {
         &self,
         drawn_rects: &DrawnRects<ComponentId>,
         selection_key: SelectionKey,
-    ) -> isize {
-        let rect = self.selection_rect(drawn_rects, selection_key);
-        rect.y
+    ) -> Option<isize> {
+        let rect = self.selection_rect(drawn_rects, selection_key)?;
+        Some(rect.y)
     }
 
     fn selection_rect(
         &self,
         drawn_rects: &DrawnRects<ComponentId>,
         selection_key: SelectionKey,
-    ) -> Rect {
-        let id = ComponentId::SelectableItem(selection_key);
+    ) -> Option<Rect> {
+        let id = match selection_key {
+            SelectionKey::None => return None,
+            SelectionKey::File(_) | SelectionKey::Section(_) | SelectionKey::Line(_) => {
+                ComponentId::SelectableItem(selection_key)
+            }
+        };
         match drawn_rects.get(&id) {
-            Some(DrawnRect { rect, timestamp: _ }) => *rect,
+            Some(DrawnRect { rect, timestamp: _ }) => Some(*rect),
             None => {
                 if cfg!(debug_assertions) {
                     panic!(
@@ -1460,7 +1482,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     )
                 } else {
                     warn!(component_id = ?id, "could not look up drawn rect for component; was it drawn?");
-                    Rect::default()
+                    None
                 }
             }
         }
@@ -1471,7 +1493,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         term_height: usize,
         drawn_rects: &DrawnRects<ComponentId>,
         selection_key: SelectionKey,
-    ) -> isize {
+    ) -> Option<isize> {
         let menu_bar_height = 1;
         let sticky_file_header_height = match selection_key {
             SelectionKey::None | SelectionKey::File(_) => 0,
@@ -1483,7 +1505,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         let viewport_height = term_height.unwrap_isize() - top_margin;
         let viewport_bottom_y = viewport_top_y + viewport_height;
 
-        let selection_rect = self.selection_rect(drawn_rects, selection_key);
+        let selection_rect = self.selection_rect(drawn_rects, selection_key)?;
         let selection_top_y = selection_rect.y;
         let selection_height = selection_rect.height.unwrap_isize();
         let selection_bottom_y = selection_top_y + selection_height;
@@ -1499,7 +1521,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
         // edge of the component, not the bottom edge. Thus, we should also
         // accept the previous `SelectionKey` and use that when making the
         // decision of where to scroll.
-        if viewport_top_y <= selection_top_y && selection_bottom_y < viewport_bottom_y {
+        let result = if viewport_top_y <= selection_top_y && selection_bottom_y < viewport_bottom_y
+        {
             // Component is completely within the viewport, no need to scroll.
             self.scroll_offset_y
         } else if (
@@ -1514,7 +1537,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
             // Component is at least partially below the viewport. Want to satisfy:
             // scroll_offset_y + term_height == rect_bottom_y
             selection_bottom_y - top_margin - viewport_height
-        }
+        };
+        Some(result)
     }
 
     fn find_component_at(
@@ -2099,7 +2123,7 @@ struct AppDebugInfo {
     term_height: usize,
     scroll_offset_y: isize,
     selection_key: SelectionKey,
-    selection_key_y: isize,
+    selection_key_y: Option<isize>,
     drawn_rects: BTreeMap<ComponentId, DrawnRect>, // sorted for determinism
 }
 

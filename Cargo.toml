@@ -22,7 +22,7 @@ crossterm = "0.27"
 num-traits = "0.2"
 thiserror = "1.0"
 tracing = "0.1"
-ratatui = "0.23.0"
+ratatui = "0.25.0"
 unicode-width = "0.1"
 
 # Features: serde

@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The maximum file view width is now 120 columns.
+- (#11) Render a message when there are no changes to view.
 
 ### Fixed
 

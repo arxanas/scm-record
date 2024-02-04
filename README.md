@@ -21,7 +21,7 @@ This is a standalone binary that uses the `scm-record` library as a front-end, a
   - As a difftool (see [`git-difftool(1)`](https://git-scm.com/docs/git-difftool). Only supports viewing diffs, not editing them.
   - Via [git-branchless](https://github.com/arxanas/git-branchless), whose `git record -i` command lets you interactively select and commit changes.
 - [Mercurial](https://www.mercurial-scm.org/): via [the `extdiff` extension](https://wiki.mercurial-scm.org/ExtdiffExtension). Only supports viewing diffs, not editing them.
-- [Jujutsu](https://github.com/martinvonz/jj): via [the `ui.diff-editor` option](https://github.com/martinvonz/jj/blob/main/docs/config.md#editing-diffs).
+- [Jujutsu](https://github.com/martinvonz/jj): built-in, use by setting the option [`ui.diff-editor=":builtin"`](https://github.com/martinvonz/jj/blob/main/docs/config.md#editing-diffs).
 
 # Integration with other projects
 
@@ -38,6 +38,7 @@ Here's some projects that don't use `scm-record`, but could benefit from integra
 
 Here are some features in the UI which are not yet implemented:
 
+- Make the keybindings easier to discover, allow accessing the menu with the keyboard.
 - Jump to next/previous element of same kind.
 - Edit one side of the diff in an editor.
 - Multi-way split UI to split a commit into more than 2 commits.

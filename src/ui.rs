@@ -16,10 +16,7 @@ use crossterm::event::{
     DisableMouseCapture, EnableMouseCapture, KeyCode, KeyEvent, KeyEventKind, KeyModifiers,
     MouseButton, MouseEvent, MouseEventKind,
 };
-use crossterm::terminal::{
-    disable_raw_mode, enable_raw_mode, is_raw_mode_enabled, EnterAlternateScreen,
-    LeaveAlternateScreen,
-};
+use crossterm::terminal::{is_raw_mode_enabled, EnterAlternateScreen, LeaveAlternateScreen};
 use ratatui::backend::{Backend, TestBackend};
 use ratatui::buffer::Buffer;
 use ratatui::style::{Color, Modifier, Style};
@@ -509,7 +506,6 @@ impl<'state, 'input> Recorder<'state, 'input> {
 
     fn set_up_crossterm() -> Result<(), RecordError> {
         if !is_raw_mode_enabled().map_err(RecordError::SetUpTerminal)? {
-            enable_raw_mode().map_err(RecordError::SetUpTerminal)?;
             crossterm::execute!(io::stdout(), EnterAlternateScreen, EnableMouseCapture)
                 .map_err(RecordError::SetUpTerminal)?;
         }
@@ -518,7 +514,6 @@ impl<'state, 'input> Recorder<'state, 'input> {
 
     fn clean_up_crossterm() -> Result<(), RecordError> {
         if is_raw_mode_enabled().map_err(RecordError::CleanUpTerminal)? {
-            disable_raw_mode().map_err(RecordError::CleanUpTerminal)?;
             crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture)
                 .map_err(RecordError::CleanUpTerminal)?;
         }

@@ -126,7 +126,7 @@ fn test_select_scroll_into_view() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -134,7 +134,7 @@ fn test_select_scroll_into_view() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(scroll_to_first_section, @r###"
+    insta::assert_snapshot!(scroll_to_first_section, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  (~) Section 1/1                                                            (-)"
@@ -142,7 +142,7 @@ fn test_select_scroll_into_view() -> eyre::Result<()> {
     "    [×] - before text 2⏎                                                        "
     "    [×] + after text 1⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(scroll_to_second_file, @r###"
+    insta::assert_snapshot!(scroll_to_second_file, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
@@ -172,7 +172,7 @@ fn test_toggle_all() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(before, @r###"
+    insta::assert_snapshot!(before, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -194,7 +194,7 @@ fn test_toggle_all() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [×] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(after, @r###"
+    insta::assert_snapshot!(after, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -244,7 +244,7 @@ fn test_toggle_all_uniform() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -256,7 +256,7 @@ fn test_toggle_all_uniform() -> eyre::Result<()> {
     "    [×] - before text 2⏎                                                        "
     "    [×] + after text 1⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(first_toggle, @r###"
+    insta::assert_snapshot!(first_toggle, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -268,7 +268,7 @@ fn test_toggle_all_uniform() -> eyre::Result<()> {
     "    [×] - before text 2⏎                                                        "
     "    [×] + after text 1⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(second_toggle, @r###"
+    insta::assert_snapshot!(second_toggle, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -280,7 +280,7 @@ fn test_toggle_all_uniform() -> eyre::Result<()> {
     "    [ ] - before text 2⏎                                                        "
     "    [ ] + after text 1⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(third_toggle, @r###"
+    insta::assert_snapshot!(third_toggle, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -313,7 +313,7 @@ fn test_quit_dialog_size() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     let result = recorder.run();
     assert_matches!(result, Err(RecordError::Cancelled));
-    insta::assert_display_snapshot!(expect_quit_dialog_to_be_centered, @r###"
+    insta::assert_snapshot!(expect_quit_dialog_to_be_centered, @r###"
     "[File] [Edit] [Select] [View]                                                                       "
     "(~) foo/bar                                                                                      (-)"
     "        ⋮                                                                                           "
@@ -390,7 +390,7 @@ fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
     let state = example_contents();
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
-    insta::assert_display_snapshot!(expect_q_opens_quit_dialog, @r###"
+    insta::assert_snapshot!(expect_q_opens_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -398,7 +398,7 @@ fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_c_does_nothing, @r###"
+    insta::assert_snapshot!(expect_c_does_nothing, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -406,7 +406,7 @@ fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_q_closes_quit_dialog, @r###"
+    insta::assert_snapshot!(expect_q_closes_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -414,7 +414,7 @@ fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_ctrl_c_opens_quit_dialog, @r###"
+    insta::assert_snapshot!(expect_ctrl_c_opens_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -422,7 +422,7 @@ fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_exited, @"<this screenshot was never assigned>");
+    insta::assert_snapshot!(expect_exited, @"<this screenshot was never assigned>");
     Ok(())
 }
 
@@ -467,7 +467,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     let state = example_contents();
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
-    insta::assert_display_snapshot!(expect_quit_button_focused_initially, @r###"
+    insta::assert_snapshot!(expect_quit_button_focused_initially, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -475,7 +475,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_left_focuses_go_back_button, @r###"
+    insta::assert_snapshot!(expect_left_focuses_go_back_button, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -483,7 +483,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_left_again_does_not_wrap, @r###"
+    insta::assert_snapshot!(expect_left_again_does_not_wrap, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -491,7 +491,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_back_button_closes_quit_dialog, @r###"
+    insta::assert_snapshot!(expect_back_button_closes_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -499,7 +499,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_right_focuses_quit_button, @r###"
+    insta::assert_snapshot!(expect_right_focuses_quit_button, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -507,7 +507,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_right_again_does_not_wrap, @r###"
+    insta::assert_snapshot!(expect_right_again_does_not_wrap, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
@@ -515,7 +515,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
-    insta::assert_display_snapshot!(expect_exited, @"<this screenshot was never assigned>");
+    insta::assert_snapshot!(expect_exited, @"<this screenshot was never assigned>");
     Ok(())
 }
 
@@ -583,7 +583,7 @@ fn test_enter_next() -> eyre::Result<()> {
     );
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
-    insta::assert_display_snapshot!(first_file_selected, @r###"
+    insta::assert_snapshot!(first_file_selected, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] foo                                                                      [-]"
     "    [×] - hello⏎                                                                "
@@ -592,7 +592,7 @@ fn test_enter_next() -> eyre::Result<()> {
     "    [ ] + world⏎                                                                "
     "    [ ] - hello⏎                                                                "
     "###);
-    insta::assert_display_snapshot!(second_file_selected, @r###"
+    insta::assert_snapshot!(second_file_selected, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] foo                                                                      [-]"
     "    [×] - hello⏎                                                                "
@@ -697,7 +697,7 @@ fn test_file_mode_change() -> eyre::Result<()> {
         ],
     }
     "###);
-    insta::assert_display_snapshot!(before_toggle, @r###"
+    insta::assert_snapshot!(before_toggle, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "[ ] bar                                                                      [-]"
@@ -705,7 +705,7 @@ fn test_file_mode_change() -> eyre::Result<()> {
     "[ ] qux                                                                      [-]"
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_toggle, @r###"
+    insta::assert_snapshot!(after_toggle, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "[×] bar                                                                      [-]"
@@ -713,7 +713,7 @@ fn test_file_mode_change() -> eyre::Result<()> {
     "[ ] qux                                                                      [-]"
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(expect_no_crash, @r###"
+    insta::assert_snapshot!(expect_no_crash, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "[×] bar                                                                      [-]"
@@ -778,7 +778,7 @@ fn test_abbreviate_unchanged_sections() -> eyre::Result<()> {
     );
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
-    insta::assert_display_snapshot!(screenshot, @r###"
+    insta::assert_snapshot!(screenshot, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "        ⋮                                                                       "
@@ -862,7 +862,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> eyre::Result<()> {
     );
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
-    insta::assert_display_snapshot!(screenshot, @r###"
+    insta::assert_snapshot!(screenshot, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "        1 start line 1/2⏎                                                       "
@@ -919,7 +919,7 @@ fn test_record_binary_file() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "  [ ] (binary contents: abc123 (123 bytes) -> def456 (456 bytes))               "
@@ -1002,7 +1002,7 @@ fn test_record_binary_file_noop() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "  [ ] (binary contents: abc123 (123 bytes) -> def456 (456 bytes))               "
@@ -1127,7 +1127,7 @@ fn test_mouse_support() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -1136,7 +1136,7 @@ fn test_mouse_support() -> eyre::Result<()> {
     "       20 this is some text⏎                                                    "
     "  [~] Section 1/1                                                            [-]"
     "###);
-    insta::assert_display_snapshot!(first_click, @r###"
+    insta::assert_snapshot!(first_click, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  (~) Section 1/1                                                            (-)"
@@ -1145,7 +1145,7 @@ fn test_mouse_support() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(click_scrolled_item, @r###"
+    insta::assert_snapshot!(click_scrolled_item, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  [~] Section 1/1                                                            [-]"
@@ -1201,19 +1201,19 @@ fn test_mouse_click_checkbox() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "[ ] bar                                                                      [-]"
     "  [ ] File mode changed from 0 to 100644                                        "
     "###);
-    insta::assert_display_snapshot!(click_unselected_checkbox, @r###"
+    insta::assert_snapshot!(click_unselected_checkbox, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "( ) bar                                                                      (-)"
     "  [ ] File mode changed from 0 to 100644                                        "
     "###);
-    insta::assert_display_snapshot!(click_selected_checkbox, @r###"
+    insta::assert_snapshot!(click_selected_checkbox, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "(×) bar                                                                      (-)"
@@ -1274,35 +1274,35 @@ fn test_mouse_click_wide_line() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "  [ ] File mode changed from 0 to 100644                                        "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
     "###);
-    insta::assert_display_snapshot!(click_line, @r###"
+    insta::assert_snapshot!(click_line, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "  [ ] File mode changed from 0 to 100644                                        "
     "  [ ] Section 2/2                                                            [-]"
     "    ( ) - foo⏎                                                                  "
     "###);
-    insta::assert_display_snapshot!(click_line_section, @r###"
+    insta::assert_snapshot!(click_line_section, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "  [ ] File mode changed from 0 to 100644                                        "
     "  ( ) Section 2/2                                                            (-)"
     "    [ ] - foo⏎                                                                  "
     "###);
-    insta::assert_display_snapshot!(click_file_mode_section, @r###"
+    insta::assert_snapshot!(click_file_mode_section, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "  ( ) File mode changed from 0 to 100644                                        "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
     "###);
-    insta::assert_display_snapshot!(click_file, @r###"
+    insta::assert_snapshot!(click_file, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "  [ ] File mode changed from 0 to 100644                                        "
@@ -1352,7 +1352,7 @@ fn test_mouse_click_dialog_buttons() -> eyre::Result<()> {
     )
     "###);
 
-    insta::assert_display_snapshot!(click_nothing, @r###"
+    insta::assert_snapshot!(click_nothing, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) foo                                                                      (-)"
     "  [×] Section 1/1                                                            [-]"
@@ -1360,7 +1360,7 @@ fn test_mouse_click_dialog_buttons() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(click_go_back, @"<this screenshot was never assigned>");
+    insta::assert_snapshot!(click_go_back, @"<this screenshot was never assigned>");
 
     Ok(())
 }
@@ -1386,7 +1386,7 @@ fn test_render_old_path() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(screenshot, @r###"
+    insta::assert_snapshot!(screenshot, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo => bar                                                               (-)"
     "                                                                                "
@@ -1423,7 +1423,7 @@ fn test_expand() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -1432,7 +1432,7 @@ fn test_expand() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_expand, @r###"
+    insta::assert_snapshot!(after_expand, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -1441,7 +1441,7 @@ fn test_expand() -> eyre::Result<()> {
     "       20 this is some text⏎                                                    "
     "  [~] Section 1/1                                                            [-]"
     "###);
-    insta::assert_display_snapshot!(after_collapse, @r###"
+    insta::assert_snapshot!(after_collapse, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -1450,7 +1450,7 @@ fn test_expand() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_expand_mouse, @r###"
+    insta::assert_snapshot!(after_expand_mouse, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
@@ -1484,7 +1484,7 @@ fn test_expand_line_noop() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(after_select, @r###"
+    insta::assert_snapshot!(after_select, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  [~] Section 1/1                                                            [-]"
@@ -1493,7 +1493,7 @@ fn test_expand_line_noop() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(after_expand_noop, @r###"
+    insta::assert_snapshot!(after_expand_noop, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  [~] Section 1/1                                                            [-]"
@@ -1525,7 +1525,7 @@ fn test_expand_scroll_into_view() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(before_expand, @r###"
+    insta::assert_snapshot!(before_expand, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [+]"
     "(×) baz                                                                      (+)"
@@ -1534,7 +1534,7 @@ fn test_expand_scroll_into_view() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_expand, @r###"
+    insta::assert_snapshot!(after_expand, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
@@ -1567,7 +1567,7 @@ fn test_collapse_select_ancestor() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(before_collapse, @r###"
+    insta::assert_snapshot!(before_collapse, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  (~) Section 1/1                                                            (-)"
@@ -1576,7 +1576,7 @@ fn test_collapse_select_ancestor() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(after_collapse, @r###"
+    insta::assert_snapshot!(after_collapse, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -1613,7 +1613,7 @@ fn test_focus_inner() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -1622,7 +1622,7 @@ fn test_focus_inner() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(inner1, @r###"
+    insta::assert_snapshot!(inner1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  (~) Section 1/1                                                            (-)"
@@ -1631,7 +1631,7 @@ fn test_focus_inner() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(inner2, @r###"
+    insta::assert_snapshot!(inner2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  [~] Section 1/1                                                            [-]"
@@ -1640,7 +1640,7 @@ fn test_focus_inner() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(inner3, @r###"
+    insta::assert_snapshot!(inner3, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "  [~] Section 1/1                                                            [-]"
@@ -1685,7 +1685,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] baz                                                                      [-]"
     "  [×] Section 1/1                                                            [-]"
@@ -1694,7 +1694,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [×] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(outer1, @r###"
+    insta::assert_snapshot!(outer1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] baz                                                                      [-]"
     "  (×) Section 1/1                                                            (-)"
@@ -1703,7 +1703,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [×] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(outer2, @r###"
+    insta::assert_snapshot!(outer2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
@@ -1712,7 +1712,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     "    [×] - before text 1⏎                                                        "
     "    [×] - before text 2⏎                                                        "
     "###);
-    insta::assert_display_snapshot!(outer3, @r###"
+    insta::assert_snapshot!(outer3, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (+)"
     "                                                                                "
@@ -1721,7 +1721,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(outer4, @r###"
+    insta::assert_snapshot!(outer4, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (+)"
     "                                                                                "
@@ -1765,7 +1765,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -1774,7 +1774,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
     "       20 this is some text⏎                                                    "
     "  [~] Section 1/1                                                            [-]"
     "###);
-    insta::assert_display_snapshot!(scroll1, @r###"
+    insta::assert_snapshot!(scroll1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "       18 this is some text⏎                                                    "
@@ -1783,7 +1783,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
     "  [~] Section 1/1                                                            [-]"
     "    [×] - before text 1⏎                                                        "
     "###);
-    insta::assert_display_snapshot!(scroll2, @r###"
+    insta::assert_snapshot!(scroll2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "       19 this is some text⏎                                                    "
@@ -1792,7 +1792,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
     "    [×] - before text 1⏎                                                        "
     "    [×] - before text 2⏎                                                        "
     "###);
-    insta::assert_display_snapshot!(scroll3, @r###"
+    insta::assert_snapshot!(scroll3, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "       20 this is some text⏎                                                    "
@@ -1801,7 +1801,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
     "    [×] - before text 2⏎                                                        "
     "    [×] + after text 1⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(scroll4, @r###"
+    insta::assert_snapshot!(scroll4, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "  [~] Section 1/1                                                            [-]"
@@ -1810,7 +1810,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(scroll5, @r###"
+    insta::assert_snapshot!(scroll5, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "    [×] - before text 1⏎                                                        "
@@ -1849,7 +1849,7 @@ fn test_sticky_header_click_expand() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -1858,7 +1858,7 @@ fn test_sticky_header_click_expand() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_scroll, @r###"
+    insta::assert_snapshot!(after_scroll, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] baz                                                                      [-]"
     "  (×) Section 1/1                                                            (-)"
@@ -1867,7 +1867,7 @@ fn test_sticky_header_click_expand() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [×] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(after_click1, @r###"
+    insta::assert_snapshot!(after_click1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (-)"
     "  [×] Section 1/1                                                            [-]"
@@ -1876,7 +1876,7 @@ fn test_sticky_header_click_expand() -> eyre::Result<()> {
     "    [×] + after text 1⏎                                                         "
     "    [×] + after text 2⏎                                                         "
     "###);
-    insta::assert_display_snapshot!(after_click2, @r###"
+    insta::assert_snapshot!(after_click2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (+)"
     "                                                                                "
@@ -1908,7 +1908,7 @@ fn test_scroll_click_no_jump() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -1917,7 +1917,7 @@ fn test_scroll_click_no_jump() -> eyre::Result<()> {
     "       20 this is some text⏎                                                    "
     "  [~] Section 1/1                                                            [-]"
     "###);
-    insta::assert_display_snapshot!(after_click, @r###"
+    insta::assert_snapshot!(after_click, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[~] foo/bar                                                                  [-]"
     "        ⋮                                                                       "
@@ -1951,7 +1951,7 @@ fn test_menu_bar_scroll_into_view() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -1959,7 +1959,7 @@ fn test_menu_bar_scroll_into_view() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_scroll1, @r###"
+    insta::assert_snapshot!(after_scroll1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] baz                                                                      [+]"
     "                                                                                "
@@ -1967,7 +1967,7 @@ fn test_menu_bar_scroll_into_view() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_scroll2, @r###"
+    insta::assert_snapshot!(after_scroll2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[×] baz                                                                      [+]"
     "                                                                                "
@@ -2006,7 +2006,7 @@ fn test_expand_menu() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -2014,7 +2014,7 @@ fn test_expand_menu() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_click, @r###"
+    insta::assert_snapshot!(after_click, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo[Edit message (e)]                                                    (+)"
     "[×] baz[Toggle current (space)]                                              [+]"
@@ -2022,7 +2022,7 @@ fn test_expand_menu() -> eyre::Result<()> {
     "       [Invert all items (a)]                                                   "
     "       [Invert all items uniformly (A)]                                         "
     "###);
-    insta::assert_display_snapshot!(after_click_different, @r###"
+    insta::assert_snapshot!(after_click_different, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[Confirm (c)]                                                                (+)"
     "[Quit (q)]                                                                   [+]"
@@ -2030,7 +2030,7 @@ fn test_expand_menu() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_click_same, @r###"
+    insta::assert_snapshot!(after_click_same, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -2038,7 +2038,7 @@ fn test_expand_menu() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_click_menu_bar, @r###"
+    insta::assert_snapshot!(after_click_menu_bar, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (+)"
     "[×] baz                                                                      [+]"
@@ -2075,7 +2075,7 @@ fn test_read_only() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "<~> foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2100,7 +2100,7 @@ fn test_read_only() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_toggle_all_ignored, @r###"
+    insta::assert_snapshot!(after_toggle_all_ignored, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "<~> foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2125,7 +2125,7 @@ fn test_read_only() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_toggle_all_uniform_ignored, @r###"
+    insta::assert_snapshot!(after_toggle_all_uniform_ignored, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "<~> foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2292,7 +2292,7 @@ fn test_toggle_unchanged_line() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2459,7 +2459,7 @@ fn test_max_file_view_width() -> eyre::Result<()> {
     let recorder = Recorder::new(state.clone(), &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial_wide, @r###"
+    insta::assert_snapshot!(initial_wide, @r###"
     "[File] [Edit] [Select] [View]                                                                                                                                                                                                                             "
     "( ) very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/ve…(-) [ ] very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/ve…[+]         "
     "        1 very very very very very very very very very very very very very very very very very very very very very very…                                                                                                                                  "
@@ -2477,7 +2477,7 @@ fn test_max_file_view_width() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial_narrow, @r###"
+    insta::assert_snapshot!(initial_narrow, @r###"
     "[File] [Edit] ["
     "( ) very/ve…(-)"
     "        1 very…"
@@ -2524,7 +2524,7 @@ fn test_commit_message_view() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
     "[Edit message]  •  (no message)                                                 "
@@ -2550,7 +2550,7 @@ fn test_commit_message_view() -> eyre::Result<()> {
     "    [×] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
     "###);
-    insta::assert_display_snapshot!(after_edit, @r###"
+    insta::assert_snapshot!(after_edit, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
     "[Edit message]  •  Hello, world!                                                "
@@ -2576,7 +2576,7 @@ fn test_commit_message_view() -> eyre::Result<()> {
     "    [×] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
     "###);
-    insta::assert_display_snapshot!(after_scroll1, @r###"
+    insta::assert_snapshot!(after_scroll1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[Edit message]  •  Hello, world!                                                "
     "                                                                                "
@@ -2602,7 +2602,7 @@ fn test_commit_message_view() -> eyre::Result<()> {
     "        5 this is some trailing text⏎                                           "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(after_scroll2, @r###"
+    insta::assert_snapshot!(after_scroll2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(~) foo/bar                                                                  (-)"
     "       18 this is some text⏎                                                    "
@@ -2662,7 +2662,7 @@ fn test_quit_dialog_when_commit_message_provided() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
 
-    insta::assert_display_snapshot!(changed_message_and_files, @r###"
+    insta::assert_snapshot!(changed_message_and_files, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
     "[Edit message]  •  hello                                                        "
@@ -2688,7 +2688,7 @@ fn test_quit_dialog_when_commit_message_provided() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_display_snapshot!(changed_message_only, @r###"
+    insta::assert_snapshot!(changed_message_only, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
     "[Edit message]  •  hello                                                        "
@@ -2743,7 +2743,7 @@ fn test_no_files() -> eyre::Result<()> {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_display_snapshot!(initial, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
     "                    There are no changes to view.                               "

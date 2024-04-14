@@ -1,4 +1,4 @@
-pub(crate) trait UsizeExt {
+pub trait UsizeExt {
     fn unwrap_isize(self) -> isize;
     fn clamp_into_u16(self) -> u16;
 }
@@ -17,7 +17,7 @@ impl UsizeExt for usize {
     }
 }
 
-pub(crate) trait IsizeExt {
+pub trait IsizeExt {
     fn unwrap_usize(self) -> usize;
     fn clamp_into_u16(self) -> u16;
     fn clamp_into_usize(self) -> usize;

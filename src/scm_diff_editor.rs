@@ -1091,8 +1091,12 @@ mod tests {
             Ok(self
                 .files
                 .keys()
-                .filter(|path| path.starts_with(left) || path.starts_with(right))
-                .cloned()
+                .filter_map(|path| {
+                    path.strip_prefix(left.to_str().unwrap())
+                        .ok()
+                        .or_else(|| path.strip_prefix(right.to_str().unwrap()).ok())
+                })
+                .map(|p| p.to_path_buf())
                 .collect())
         }
 

@@ -1088,11 +1088,17 @@ mod tests {
 
     impl Filesystem for TestFilesystem {
         fn read_dir_diff_paths(&self, left: &Path, right: &Path) -> Result<BTreeSet<PathBuf>> {
-            Ok(self
+            let left_files = self
                 .files
                 .keys()
-                .filter(|path| path.starts_with(left) || path.starts_with(right))
-                .cloned()
+                .filter_map(|path| path.strip_prefix(left).ok());
+            let right_files = self
+                .files
+                .keys()
+                .filter_map(|path| path.strip_prefix(right).ok());
+            Ok(left_files
+                .chain(right_files)
+                .map(|path| path.to_path_buf())
                 .collect())
         }
 

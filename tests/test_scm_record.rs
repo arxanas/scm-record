@@ -1760,6 +1760,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     let outer2 = TestingScreenshot::default();
     let outer3 = TestingScreenshot::default();
     let outer4 = TestingScreenshot::default();
+    let outer5 = TestingScreenshot::default();
     let mut input = TestingInput::new(
         80,
         7,
@@ -1778,6 +1779,8 @@ fn test_focus_outer() -> eyre::Result<()> {
             outer3.event(),
             Event::FocusOuter,
             outer4.event(),
+            Event::FocusOuter,
+            outer5.event(),
             Event::QuitAccept,
         ],
     );
@@ -1804,14 +1807,23 @@ fn test_focus_outer() -> eyre::Result<()> {
     "###);
     insta::assert_snapshot!(outer2, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(×) baz                                                                      (-)"
-    "        1 Some leading text 1⏎                                                  "
-    "        2 Some leading text 2⏎                                                  "
-    "  [×] Section 1/1                                                            [-]"
-    "    [×] - before text 1⏎                                                        "
-    "    [×] - before text 2⏎                                                        "
+    "[×] baz                                                                      [~]"
+    "  (×) Section 1/1                                                            (+)"
+    "        5 this is some trailing text⏎                                           "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
     "###);
     insta::assert_snapshot!(outer3, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(×) baz                                                                      (~)"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  [×] Section 1/1                                                            [+]"
+    "        5 this is some trailing text⏎                                           "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(outer4, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (+)"
     "                                                                                "
@@ -1820,7 +1832,7 @@ fn test_focus_outer() -> eyre::Result<()> {
     "                                                                                "
     "                                                                                "
     "###);
-    insta::assert_snapshot!(outer4, @r###"
+    insta::assert_snapshot!(outer5, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(×) baz                                                                      (+)"
     "                                                                                "

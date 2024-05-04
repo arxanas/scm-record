@@ -19,6 +19,7 @@ impl UsizeExt for usize {
 
 pub trait IsizeExt {
     fn unwrap_usize(self) -> usize;
+    #[allow(dead_code)]
     fn clamp_into_u16(self) -> u16;
     fn clamp_into_usize(self) -> usize;
 }

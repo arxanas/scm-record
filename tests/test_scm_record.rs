@@ -770,15 +770,34 @@ fn test_abbreviate_unchanged_sections() -> eyre::Result<()> {
         }],
     };
 
-    let screenshot = TestingScreenshot::default();
+    let initial = TestingScreenshot::default();
+    let collapse_bottom = TestingScreenshot::default();
+    let collapse_top = TestingScreenshot::default();
+    let expand_bottom = TestingScreenshot::default();
     let mut input = TestingInput::new(
         80,
         24,
-        [Event::ExpandAll, screenshot.event(), Event::QuitAccept],
+        [
+            Event::ExpandAll,
+            initial.event(),
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::ExpandItem,
+            collapse_bottom.event(),
+            Event::FocusPrev,
+            Event::FocusPrev,
+            Event::ExpandItem,
+            collapse_top.event(),
+            Event::FocusNext,
+            Event::ExpandItem,
+            expand_bottom.event(),
+            Event::QuitAccept,
+        ],
     );
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
-    insta::assert_snapshot!(screenshot, @r###"
+    insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "        ⋮                                                                       "
@@ -800,6 +819,86 @@ fn test_abbreviate_unchanged_sections() -> eyre::Result<()> {
     "       15 end line 2/6⏎                                                         "
     "       16 end line 3/6⏎                                                         "
     "        ⋮                                                                       "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    // Unchanged sections are collapsed unless there's at least one changed
+    // section expanded before or after them.
+    insta::assert_snapshot!(collapse_bottom, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[ ] foo                                                                      [~]"
+    "        ⋮                                                                       "
+    "        4 start line 4/6⏎                                                       "
+    "        5 start line 5/6⏎                                                       "
+    "        6 start line 6/6⏎                                                       "
+    "  [ ] Section 1/2                                                            [-]"
+    "    [ ] + changed⏎                                                              "
+    "        7 middle line 1/7⏎                                                      "
+    "        8 middle line 2/7⏎                                                      "
+    "        9 middle line 3/7⏎                                                      "
+    "        ⋮                                                                       "
+    "       11 middle line 5/7⏎                                                      "
+    "       12 middle line 6/7⏎                                                      "
+    "       13 middle line 7/7⏎                                                      "
+    "  ( ) Section 2/2                                                            (+)"
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(collapse_top, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[ ] foo                                                                      [~]"
+    "  ( ) Section 1/2                                                            (+)"
+    "  [ ] Section 2/2                                                            [+]"
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(expand_bottom, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[ ] foo                                                                      [~]"
+    "  [ ] Section 1/2                                                            [+]"
+    "        7 middle line 1/7⏎                                                      "
+    "        8 middle line 2/7⏎                                                      "
+    "        9 middle line 3/7⏎                                                      "
+    "        ⋮                                                                       "
+    "       11 middle line 5/7⏎                                                      "
+    "       12 middle line 6/7⏎                                                      "
+    "       13 middle line 7/7⏎                                                      "
+    "  ( ) Section 2/2                                                            (-)"
+    "    [ ] + changed⏎                                                              "
+    "       14 end line 1/6⏎                                                         "
+    "       15 end line 2/6⏎                                                         "
+    "       16 end line 3/6⏎                                                         "
+    "        ⋮                                                                       "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "

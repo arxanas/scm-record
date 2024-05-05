@@ -2524,7 +2524,26 @@ impl Component for FileView<'_> {
         if self.is_expanded() {
             let x = x + 2;
             let mut section_y = y + file_view_header_rect.height.unwrap_isize();
-            for section_view in section_views {
+            let expanded_sections: HashSet<usize> = section_views
+                .iter()
+                .enumerate()
+                .filter_map(|(i, view)| {
+                    if view.is_expanded() && view.section.is_editable() {
+                        return Some(i);
+                    }
+                    None
+                })
+                .collect();
+            for (i, section_view) in section_views.iter().enumerate() {
+                // Skip this section if it is an un-editable context section and
+                // none of the editable sections surrounding it are expanded.
+                let context_section = !section_view.section.is_editable();
+                let prev_is_collapsed = i == 0 || !expanded_sections.contains(&(i - 1));
+                let next_is_collapsed = !expanded_sections.contains(&(i + 1));
+                if context_section && prev_is_collapsed && next_is_collapsed {
+                    continue;
+                }
+
                 let section_rect = viewport.draw_component(x, section_y, section_view);
                 section_y += section_rect.height.unwrap_isize();
 

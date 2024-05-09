@@ -123,8 +123,10 @@ pub enum Event {
     PageUp,
     PageDown,
     FocusPrev,
+    FocusPrevSameKind, // focus on the previous item of the same kind (i.e. file, section, line)
     FocusPrevPage,
     FocusNext,
+    FocusNextSameKind, // focus on the next item of the same kind
     FocusNextPage,
     FocusInner,
     FocusOuter,
@@ -214,6 +216,19 @@ impl From<crossterm::event::Event> for Event {
                 kind: KeyEventKind::Press,
                 state: _,
             }) => Self::FocusNext,
+
+            Event::Key(KeyEvent {
+                code: KeyCode::PageUp,
+                modifiers: KeyModifiers::NONE,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::FocusPrevSameKind,
+            Event::Key(KeyEvent {
+                code: KeyCode::PageDown,
+                modifiers: KeyModifiers::NONE,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::FocusNextSameKind,
 
             Event::Key(KeyEvent {
                 code: KeyCode::Left | KeyCode::Char('h'),
@@ -723,6 +738,14 @@ impl<'state, 'input> Recorder<'state, 'input> {
                             event: Event::FocusNext,
                         },
                         MenuItem {
+                            label: Cow::Borrowed("Previous item of the same kind (page-up)"),
+                            event: Event::FocusPrevSameKind,
+                        },
+                        MenuItem {
+                            label: Cow::Borrowed("Next item of the same kind (page-down)"),
+                            event: Event::FocusNextSameKind,
+                        },
+                        MenuItem {
                             label: Cow::Borrowed("Outer item (left, h)"),
                             event: Event::FocusOuter,
                         },
@@ -1040,6 +1063,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 | Event::PageDown
                 | Event::FocusPrev
                 | Event::FocusNext
+                | Event::FocusPrevSameKind
+                | Event::FocusNextSameKind
                 | Event::FocusPrevPage
                 | Event::FocusNextPage
                 | Event::ToggleAll
@@ -1077,6 +1102,22 @@ impl<'state, 'input> Recorder<'state, 'input> {
             (None, Event::FocusNext) => {
                 let (keys, index) = self.find_selection();
                 let selection_key = self.select_next(&keys, index);
+                StateUpdate::SelectItem {
+                    selection_key,
+                    ensure_in_viewport: true,
+                }
+            }
+            (None, Event::FocusPrevSameKind) => {
+                let selection_key =
+                    self.select_prev_or_next_of_same_kind(/*select_previous=*/ true);
+                StateUpdate::SelectItem {
+                    selection_key,
+                    ensure_in_viewport: true,
+                }
+            }
+            (None, Event::FocusNextSameKind) => {
+                let selection_key =
+                    self.select_prev_or_next_of_same_kind(/*select_previous=*/ false);
                 StateUpdate::SelectItem {
                     selection_key,
                     ensure_in_viewport: true,
@@ -1290,6 +1331,35 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 Some(key) => *key,
                 None => keys[0],
             },
+        }
+    }
+
+    // Returns the previous or next SelectionKey of the same kind as the current
+    // selection key. If there are no other keys of the same kind, the current
+    // key is returned instead. If `select_previous` is true, the previous key
+    // is returned. Otherwise, the next key is returned.
+    fn select_prev_or_next_of_same_kind(&self, select_previous: bool) -> SelectionKey {
+        let (keys, index) = self.find_selection();
+        let iterate_keys_with_wrap_around = |i| -> Box<dyn DoubleEndedIterator<Item = _>> {
+            let forward_iter = keys[i + 1..] // Skip the current key
+                .iter()
+                .chain(keys[..i].iter());
+            if select_previous {
+                Box::new(forward_iter.rev())
+            } else {
+                Box::new(forward_iter)
+            }
+        };
+        match index {
+            None => self.first_selection_key(),
+            Some(index) => {
+                match iterate_keys_with_wrap_around(index)
+                    .find(|k| std::mem::discriminant(*k) == std::mem::discriminant(&keys[index]))
+                {
+                    None => keys[index],
+                    Some(key) => *key,
+                }
+            }
         }
     }
 

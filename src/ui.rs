@@ -189,34 +189,18 @@ impl From<crossterm::event::Event> for Event {
                 modifiers: _,
             }) => Self::ScrollDown,
 
-            Event::Key(
-                KeyEvent {
-                    code: KeyCode::PageUp,
-                    modifiers: KeyModifiers::NONE,
-                    kind: KeyEventKind::Press,
-                    state: _,
-                }
-                | KeyEvent {
-                    code: KeyCode::Char('b'),
-                    modifiers: KeyModifiers::CONTROL,
-                    kind: KeyEventKind::Press,
-                    state: _,
-                },
-            ) => Self::PageUp,
-            Event::Key(
-                KeyEvent {
-                    code: KeyCode::PageDown,
-                    modifiers: KeyModifiers::NONE,
-                    kind: KeyEventKind::Press,
-                    state: _,
-                }
-                | KeyEvent {
-                    code: KeyCode::Char('f'),
-                    modifiers: KeyModifiers::CONTROL,
-                    kind: KeyEventKind::Press,
-                    state: _,
-                },
-            ) => Self::PageDown,
+            Event::Key(KeyEvent {
+                code: KeyCode::PageUp | KeyCode::Char('b'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::PageUp,
+            Event::Key(KeyEvent {
+                code: KeyCode::PageDown | KeyCode::Char('f'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::PageDown,
 
             Event::Key(KeyEvent {
                 code: KeyCode::Up | KeyCode::Char('k'),
@@ -776,11 +760,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
                             event: Event::ScrollDown,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Page up (page-up, ctrl-b)"),
+                            label: Cow::Borrowed("Previous page (ctrl-page-up, ctrl-b)"),
                             event: Event::PageUp,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Page down (page-down, ctrl-f)"),
+                            label: Cow::Borrowed("Next page (ctrl-page-down, ctrl-f)"),
                             event: Event::PageDown,
                         },
                     ],

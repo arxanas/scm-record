@@ -165,7 +165,7 @@ impl From<crossterm::event::Event> for Event {
             }) => Self::QuitAccept,
 
             Event::Key(KeyEvent {
-                code: KeyCode::Char('y'),
+                code: KeyCode::Up | KeyCode::Char('y'),
                 modifiers: KeyModifiers::CONTROL,
                 kind: KeyEventKind::Press,
                 state: _,
@@ -177,7 +177,7 @@ impl From<crossterm::event::Event> for Event {
                 modifiers: _,
             }) => Self::ScrollUp,
             Event::Key(KeyEvent {
-                code: KeyCode::Char('e'),
+                code: KeyCode::Down | KeyCode::Char('e'),
                 modifiers: KeyModifiers::CONTROL,
                 kind: KeyEventKind::Press,
                 state: _,
@@ -752,11 +752,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
                             event: Event::ExpandAll,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Scroll up (ctrl-y)"),
+                            label: Cow::Borrowed("Scroll up (ctrl-up, ctrl-y)"),
                             event: Event::ScrollUp,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Scroll down (ctrl-e)"),
+                            label: Cow::Borrowed("Scroll down (ctrl-down, ctrl-e)"),
                             event: Event::ScrollDown,
                         },
                         MenuItem {

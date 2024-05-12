@@ -2089,12 +2089,16 @@ impl<Id> TristateBox<Id> {
         let inner = match (icon_style, tristate, use_unicode) {
             (TristateIconStyle::Expand, Tristate::False, _) => "+",
             (TristateIconStyle::Expand, Tristate::True, _) => "-",
+            (TristateIconStyle::Expand, Tristate::Partial, false) => "~",
+            (TristateIconStyle::Expand, Tristate::Partial, true) => "±",
 
-            (TristateIconStyle::Check | TristateIconStyle::Expand, Tristate::Partial, _) => "~",
+            (TristateIconStyle::Check, Tristate::False, false) => " ",
+            (TristateIconStyle::Check, Tristate::True, false) => "*",
+            (TristateIconStyle::Check, Tristate::Partial, false) => "~",
 
-            (TristateIconStyle::Check, Tristate::False, _) => " ",
-            (TristateIconStyle::Check, Tristate::True, false) => "x",
-            (TristateIconStyle::Check, Tristate::True, true) => "\u{00D7}", // Multiplication Sign
+            (TristateIconStyle::Check, Tristate::False, true) => " ",
+            (TristateIconStyle::Check, Tristate::True, true) => "●",
+            (TristateIconStyle::Check, Tristate::Partial, true) => "◐",
         };
         format!("{l}{inner}{r}")
     }

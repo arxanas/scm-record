@@ -43,7 +43,7 @@ walkdir = { version = "2.5", optional = true }
 assert_matches = "1.5"
 criterion = "0.5"
 eyre = "0.6"
-insta = "1.38"
+insta = "1.39"
 maplit = "1.0"
 serde_json = "1.0"
 

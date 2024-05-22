@@ -9,7 +9,7 @@ use cassowary::{Solver, Variable};
 use num_traits::cast;
 use ratatui::buffer::Buffer;
 use ratatui::style::{Color, Modifier, Style};
-use ratatui::text::Span;
+use ratatui::text::{Line, Span};
 use ratatui::widgets::{StatefulWidget, Widget};
 use ratatui::Frame;
 use unicode_width::UnicodeWidthStr;
@@ -523,15 +523,40 @@ impl<'a, ComponentId: Clone + Debug + Eq + Hash> Viewport<'a, ComponentId> {
         span_rect
     }
 
+    /// Draw a [`Line`] directly to the screen at `(x, y)` location.
+    pub fn draw_line(&mut self, x: isize, y: isize, line: &Line) -> Rect {
+        let line_rect = Rect {
+            x,
+            y,
+            width: line.width(),
+            height: 1,
+        };
+        self.current_trace_mut().merge_rect(line_rect);
+
+        let draw_rect = self.rect.intersect(line_rect);
+
+        let draw_rect = match self.mask {
+            Some(mask) => mask.apply(draw_rect),
+            None => draw_rect,
+        };
+        if !draw_rect.is_empty() {
+            let buf_rect = self.translate_rect(draw_rect);
+            line.render(buf_rect, self.buf);
+        }
+
+        line_rect
+    }
+
     /// Draw the given text. If the text would overflow the current mask, then
     /// it is truncated with an ellipsis.
-    pub fn draw_text(&mut self, x: isize, y: isize, span: &Span) -> Rect {
-        let span_rect = self.draw_span(x, y, span);
+    pub fn draw_text<'line>(&mut self, x: isize, y: isize, line: impl Into<Line<'line>>) -> Rect {
+        let line_rect = self.draw_line(x, y, &line.into());
+
         let mask_rect = self.mask_rect();
-        if span_rect.end_x() > mask_rect.end_x() {
-            self.draw_span(mask_rect.end_x() - 1, span_rect.y, &Span::raw("…"));
+        if line_rect.end_x() > mask_rect.end_x() {
+            self.draw_span(mask_rect.end_x() - 1, line_rect.y, &Span::raw("…"));
         }
-        span_rect
+        line_rect
     }
 
     pub fn draw_widget(&mut self, rect: ratatui::layout::Rect, widget: impl Widget) {

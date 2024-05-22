@@ -2306,7 +2306,7 @@ impl<'a> Component for CommitMessageView<'a> {
                 viewport.draw_text(
                     divider_rect.end_x() + 1,
                     y,
-                    &Span::styled(
+                    Span::styled(
                         Cow::Borrowed({
                             let first_line = match message.split_once('\n') {
                                 Some((before, _after)) => before,
@@ -2377,7 +2377,7 @@ impl Component for CommitView<'_> {
                 50,
                 50,
             );
-            viewport.draw_text(message_rect.x, message_rect.y, &Span::raw(message));
+            viewport.draw_text(message_rect.x, message_rect.y, Span::raw(message));
             return;
         }
 
@@ -2674,7 +2674,7 @@ impl Component for FileViewHeader<'_> {
                 viewport.draw_text(
                     x + toggle_box_rect.width.unwrap_isize() + 1,
                     y,
-                    &Span::styled(
+                    Span::styled(
                         format!(
                             "{}{}",
                             match old_path {
@@ -2900,7 +2900,7 @@ impl Component for SectionView<'_> {
                         viewport.draw_text(
                             x + toggle_box_rect.width.unwrap_isize() + 1,
                             y,
-                            &Span::styled(
+                            Span::styled(
                                 format!(
                                     "Section {editable_section_num}/{total_num_editable_sections}"
                                 ),
@@ -3005,7 +3005,7 @@ impl Component for SectionView<'_> {
                 let toggle_box_rect = viewport.draw_component(x, y, &toggle_box);
                 let x = x + toggle_box_rect.width.unwrap_isize() + 1;
                 let text = format!("File mode changed from {before} to {after}");
-                viewport.draw_text(x, y, &Span::styled(text, Style::default().fg(Color::Blue)));
+                viewport.draw_text(x, y, Span::styled(text, Style::default().fg(Color::Blue)));
                 if is_focused {
                     highlight_rect(
                         viewport,
@@ -3061,7 +3061,7 @@ impl Component for SectionView<'_> {
                     result.push(description.join(" -> "));
                     format!("({})", result.join(" "))
                 };
-                viewport.draw_text(x, y, &Span::styled(text, Style::default().fg(Color::Blue)));
+                viewport.draw_text(x, y, Span::styled(text, Style::default().fg(Color::Blue)));
 
                 if is_focused {
                     highlight_rect(
@@ -3108,6 +3108,7 @@ impl Component for SectionLineView<'_> {
     fn draw(&self, viewport: &mut Viewport<Self::Id>, x: isize, y: isize) {
         const NEWLINE_ICON: &str = "⏎";
         let Self { line_key: _, inner } = self;
+
         viewport.draw_blank(Rect {
             x: viewport.mask_rect().x,
             y,
@@ -3135,7 +3136,7 @@ impl Component for SectionLineView<'_> {
                 let line_rect = viewport.draw_text(
                     line_num_rect.x + line_num_rect.width.unwrap_isize(),
                     line_num_rect.y,
-                    &line,
+                    line,
                 );
                 if let Some(line_end) = line_end {
                     viewport.draw_span(line_rect.x + line_rect.width.unwrap_isize(), y, &line_end);
@@ -3154,6 +3155,7 @@ impl Component for SectionLineView<'_> {
                     ChangeType::Added => ("+ ", Style::default().fg(Color::Green)),
                     ChangeType::Removed => ("- ", Style::default().fg(Color::Red)),
                 };
+
                 viewport.draw_span(x, y, &Span::styled(change_type_text, style));
                 let x = x + change_type_text.width().unwrap_isize();
                 let (line, line_end) = match line.strip_suffix('\n') {
@@ -3166,7 +3168,7 @@ impl Component for SectionLineView<'_> {
                     ),
                     None => (Span::styled(*line, style), None),
                 };
-                let line_rect = viewport.draw_text(x, y, &line);
+                let line_rect = viewport.draw_text(x, y, line);
                 if let Some(line_end) = line_end {
                     viewport.draw_span(line_rect.x + line_rect.width.unwrap_isize(), y, &line_end);
                 }

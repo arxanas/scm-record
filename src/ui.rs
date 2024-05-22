@@ -3108,6 +3108,10 @@ impl Component for SectionLineView<'_> {
     fn draw(&self, viewport: &mut Viewport<Self::Id>, x: isize, y: isize) {
         fn replace_control_character(character: char) -> Option<&'static str> {
             match character {
+                // Characters end up writing over each-other and end up
+                // displaying incorrectly if ignored. Replacing tabs
+                // with a known length string fixes the issue for now.
+                '\t' => Some("→   "),
                 '\n' => Some("⏎"),
                 _ => None,
             }

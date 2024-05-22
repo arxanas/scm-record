@@ -3211,3 +3211,111 @@ fn test_no_files() -> eyre::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_tabs_in_files() -> eyre::Result<()> {
+    let state = RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo/bar")),
+            file_mode: None,
+            sections: vec![
+                Section::Unchanged {
+                    lines: iter::repeat(Cow::Borrowed("\tthis is some indented text\n"))
+                        .take(10)
+                        .collect(),
+                },
+                Section::Changed {
+                    lines: vec![
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Removed,
+                            line: Cow::Borrowed("before text\t1\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Added,
+                            line: Cow::Borrowed("after text 1\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Removed,
+                            line: Cow::Borrowed("before text 2\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Added,
+                            line: Cow::Borrowed("after text\t2\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Removed,
+                            line: Cow::Borrowed("\tbefore text 3\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Added,
+                            line: Cow::Borrowed("\tafter text\t3\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Removed,
+                            line: Cow::Borrowed("\tbefore text\t4\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Added,
+                            line: Cow::Borrowed("\tafter text 4\n"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Removed,
+                            line: Cow::Borrowed("\tbefore text\t5"),
+                        },
+                        SectionChangedLine {
+                            is_checked: true,
+                            change_type: ChangeType::Added,
+                            line: Cow::Borrowed("\tafter text\t5"),
+                        },
+                    ],
+                },
+                Section::Unchanged {
+                    lines: vec![Cow::Borrowed("this is some trailing\ttext\n")],
+                },
+            ],
+        }],
+    };
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        18,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(●) foo/bar                                                                  (-)"
+    "        ⋮                                                                       "
+    "        8 →   this is some indented text⏎                                       "
+    "        9 →   this is some indented text⏎                                       "
+    "       10 →   this is some indented text⏎                                       "
+    "  [●] Section 1/1                                                            [-]"
+    "    [●] - before text→   1⏎                                                     "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text→   2⏎                                                      "
+    "    [●] - →   before text 3⏎                                                    "
+    "    [●] + →   after text→   3⏎                                                  "
+    "    [●] - →   before text→   4⏎                                                 "
+    "    [●] + →   after text 4⏎                                                     "
+    "    [●] - →   before text→   5                                                  "
+    "    [●] + →   after text→   5                                                   "
+    "       16 this is some trailing→   text⏎                                        "
+    "###);
+
+    Ok(())
+}

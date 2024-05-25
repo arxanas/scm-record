@@ -3106,7 +3106,39 @@ impl Component for SectionLineView<'_> {
     }
 
     fn draw(&self, viewport: &mut Viewport<Self::Id>, x: isize, y: isize) {
-        const NEWLINE_ICON: &str = "⏎";
+        fn replace_control_character(character: char) -> Option<&'static str> {
+            match character {
+                '\n' => Some("⏎"),
+                _ => None,
+            }
+        }
+
+        /// Split the line into a sequence of [`Span`]s where control characters are
+        /// replaced with styled [`Span`]'s and push them to the [`spans`] argument.
+        fn push_spans_from_line<'line>(line: &'line str, spans: &mut Vec<Span<'line>>) {
+            const CONTROL_CHARACTER_STYLE: Style = Style::new().fg(Color::DarkGray);
+
+            let mut last_index = 0;
+            // Find index of the start of each character to replace
+            for (idx, char) in line.match_indices(|char| replace_control_character(char).is_some())
+            {
+                // Push the string leading up to the character and the styled replacement string
+                if let Some(replacement_string) =
+                    char.chars().next().and_then(replace_control_character)
+                {
+                    spans.push(Span::raw(&line[last_index..idx]));
+                    spans.push(Span::styled(replacement_string, CONTROL_CHARACTER_STYLE));
+                    // Move the "cursor" to just after the character we're replacing
+                    last_index = idx + char.len();
+                }
+            }
+            // Append anything remaining after the last replacement
+            let remaining_line = &line[last_index..];
+            if !remaining_line.is_empty() {
+                spans.push(Span::raw(remaining_line));
+            }
+        }
+
         viewport.draw_blank(Rect {
             x: viewport.mask_rect().x,
             y,
@@ -3120,22 +3152,8 @@ impl Component for SectionLineView<'_> {
                 // beginning of the actual text with the `+`/`-` of the changed
                 // lines.
                 let line_number = Span::raw(format!("{line_num:5} "));
-
-                let (line, line_end) = match line.strip_suffix('\n') {
-                    Some(line) => (
-                        Span::raw(line),
-                        Some(Span::styled(
-                            NEWLINE_ICON,
-                            Style::default().fg(Color::DarkGray),
-                        )),
-                    ),
-                    None => (Span::raw(*line), None),
-                };
-
-                let mut spans = vec![line_number, line];
-                if let Some(line_end) = line_end {
-                    spans.push(line_end);
-                }
+                let mut spans = vec![line_number];
+                push_spans_from_line(line, &mut spans);
 
                 const UI_UNCHANGED_STYLE: Style = Style::new().add_modifier(Modifier::DIM);
                 viewport.draw_text(x, y, Line::from(spans).style(UI_UNCHANGED_STYLE));
@@ -3154,22 +3172,8 @@ impl Component for SectionLineView<'_> {
                     ChangeType::Removed => ("- ", Style::default().fg(Color::Red)),
                 };
 
-                let (line, line_end) = match line.strip_suffix('\n') {
-                    Some(line) => (
-                        Span::raw(line),
-                        Some(Span::styled(
-                            NEWLINE_ICON,
-                            Style::default().fg(Color::DarkGray),
-                        )),
-                    ),
-                    None => (Span::raw(*line), None),
-                };
-
-                let mut spans = vec![Span::raw(change_type_text), line];
-
-                if let Some(line_end) = line_end {
-                    spans.push(line_end);
-                }
+                let mut spans = vec![Span::raw(change_type_text)];
+                push_spans_from_line(line, &mut spans);
 
                 viewport.draw_text(x, y, Line::from(spans).style(changed_line_style));
             }

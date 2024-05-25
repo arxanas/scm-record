@@ -23,7 +23,7 @@ use crossterm::terminal::{
 use ratatui::backend::{Backend, TestBackend};
 use ratatui::buffer::Buffer;
 use ratatui::style::{Color, Modifier, Style};
-use ratatui::text::Span;
+use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tracing::warn;
@@ -3107,40 +3107,38 @@ impl Component for SectionLineView<'_> {
 
     fn draw(&self, viewport: &mut Viewport<Self::Id>, x: isize, y: isize) {
         const NEWLINE_ICON: &str = "⏎";
-        let Self { line_key: _, inner } = self;
-
         viewport.draw_blank(Rect {
             x: viewport.mask_rect().x,
             y,
             width: viewport.mask_rect().width,
             height: 1,
         });
-        match inner {
+
+        match &self.inner {
             SectionLineViewInner::Unchanged { line, line_num } => {
-                let style = Style::default().add_modifier(Modifier::DIM);
                 // Pad the number in 5 columns because that will align the
                 // beginning of the actual text with the `+`/`-` of the changed
                 // lines.
-                let line_num_rect =
-                    viewport.draw_span(x, y, &Span::styled(format!("{line_num:5} "), style));
+                let line_number = Span::raw(format!("{line_num:5} "));
+
                 let (line, line_end) = match line.strip_suffix('\n') {
                     Some(line) => (
-                        Span::styled(line, style),
+                        Span::raw(line),
                         Some(Span::styled(
                             NEWLINE_ICON,
                             Style::default().fg(Color::DarkGray),
                         )),
                     ),
-                    None => (Span::styled(*line, style), None),
+                    None => (Span::raw(*line), None),
                 };
-                let line_rect = viewport.draw_text(
-                    line_num_rect.x + line_num_rect.width.unwrap_isize(),
-                    line_num_rect.y,
-                    line,
-                );
+
+                let mut spans = vec![line_number, line];
                 if let Some(line_end) = line_end {
-                    viewport.draw_span(line_rect.x + line_rect.width.unwrap_isize(), y, &line_end);
+                    spans.push(line_end);
                 }
+
+                const UI_UNCHANGED_STYLE: Style = Style::new().add_modifier(Modifier::DIM);
+                viewport.draw_text(x, y, Line::from(spans).style(UI_UNCHANGED_STYLE));
             }
 
             SectionLineViewInner::Changed {
@@ -3149,29 +3147,31 @@ impl Component for SectionLineView<'_> {
                 line,
             } => {
                 let toggle_box_rect = viewport.draw_component(x, y, toggle_box);
-                let x = x + toggle_box_rect.width.unwrap_isize() + 1;
+                let x = toggle_box_rect.end_x() + 1;
 
-                let (change_type_text, style) = match change_type {
+                let (change_type_text, changed_line_style) = match change_type {
                     ChangeType::Added => ("+ ", Style::default().fg(Color::Green)),
                     ChangeType::Removed => ("- ", Style::default().fg(Color::Red)),
                 };
 
-                viewport.draw_span(x, y, &Span::styled(change_type_text, style));
-                let x = x + change_type_text.width().unwrap_isize();
                 let (line, line_end) = match line.strip_suffix('\n') {
                     Some(line) => (
-                        Span::styled(line, style),
+                        Span::raw(line),
                         Some(Span::styled(
                             NEWLINE_ICON,
                             Style::default().fg(Color::DarkGray),
                         )),
                     ),
-                    None => (Span::styled(*line, style), None),
+                    None => (Span::raw(*line), None),
                 };
-                let line_rect = viewport.draw_text(x, y, line);
+
+                let mut spans = vec![Span::raw(change_type_text), line];
+
                 if let Some(line_end) = line_end {
-                    viewport.draw_span(line_rect.x + line_rect.width.unwrap_isize(), y, &line_end);
+                    spans.push(line_end);
                 }
+
+                viewport.draw_text(x, y, Line::from(spans).style(changed_line_style));
             }
         }
     }

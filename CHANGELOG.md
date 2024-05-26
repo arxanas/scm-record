@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- (#41) When collapsing editable sections, the uneditable context lines between those collapsed editable sections is now also hidden.
+
+### Fixed
+
+- (#31) Console mode settings are now undone in LIFO order, improving Powershell integration.
+- (#47) The alternate screen is now cleared before starting, improving Mosh integration.
+
 ## [v0.2.0] - 2023-12-25
 
 ### Added

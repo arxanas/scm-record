@@ -1397,17 +1397,25 @@ impl<'state, 'input> Recorder<'state, 'input> {
             selection_key @ SelectionKey::File(_) => {
                 StateUpdate::SetExpandItem(selection_key, false)
             }
-            SelectionKey::Section(SectionKey {
+            selection_key @ SelectionKey::Section(SectionKey {
                 commit_idx,
                 file_idx,
                 section_idx: _,
-            }) => StateUpdate::SelectItem {
-                selection_key: SelectionKey::File(FileKey {
-                    commit_idx,
-                    file_idx,
-                }),
-                ensure_in_viewport: true,
-            },
+            }) => {
+                // If the selection is expanded, collapse it. Otherwise, move
+                // the selection to the file.
+                if self.expanded_items.contains(&selection_key) {
+                    StateUpdate::SetExpandItem(selection_key, false)
+                } else {
+                    StateUpdate::SelectItem {
+                        selection_key: SelectionKey::File(FileKey {
+                            commit_idx,
+                            file_idx,
+                        }),
+                        ensure_in_viewport: true,
+                    }
+                }
+            }
             SelectionKey::Line(LineKey {
                 commit_idx,
                 file_idx,

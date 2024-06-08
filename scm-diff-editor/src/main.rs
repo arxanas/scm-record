@@ -423,7 +423,13 @@ pub struct Opts {
     output: Option<PathBuf>,
 }
 
-fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<(Vec<File<'static>>, PathBuf)> {
+#[derive(Debug)]
+struct DiffContext {
+    files: Vec<File<'static>>,
+    write_root: PathBuf,
+}
+
+fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffContext> {
     let result = match opts {
         Opts {
             dir_diff: false,
@@ -441,7 +447,10 @@ fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<(Vec<File<'s
                 right.clone(),
                 right.clone(),
             )?];
-            (files, PathBuf::new())
+            DiffContext {
+                files,
+                write_root: PathBuf::new(),
+            }
         }
 
         Opts {
@@ -464,7 +473,10 @@ fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<(Vec<File<'s
                     display_path.clone(),
                 )?);
             }
-            (files, right.clone())
+            DiffContext {
+                files,
+                write_root: right.clone(),
+            }
         }
 
         Opts {
@@ -483,7 +495,10 @@ fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<(Vec<File<'s
                 right.clone(),
                 output.clone(),
             )?];
-            (files, PathBuf::new())
+            DiffContext {
+                files,
+                write_root: PathBuf::new(),
+            }
         }
 
         Opts {
@@ -518,7 +533,7 @@ fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<(Vec<File<'s
 fn main() -> Result<()> {
     let opts = Opts::parse();
     let filesystem = RealFilesystem;
-    let (files, write_root) = process_opts(&filesystem, &opts)?;
+    let DiffContext { files, write_root } = process_opts(&filesystem, &opts)?;
     let state = RecordState {
         is_read_only: opts.read_only,
         commits: Default::default(),
@@ -669,7 +684,10 @@ common2
 qux2
 "),
         });
-        let (mut files, write_root) = process_opts(
+        let DiffContext {
+            mut files,
+            write_root,
+        } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -788,7 +806,7 @@ common2
 qux2
 "),
         });
-        let (files, write_root) = process_opts(
+        let DiffContext { files, write_root } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -848,7 +866,10 @@ qux2
         let mut filesystem = TestFilesystem::new(btreemap! {
             PathBuf::from("right") => file_info("right\n"),
         });
-        let (mut files, write_root) = process_opts(
+        let DiffContext {
+            mut files,
+            write_root,
+        } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -921,7 +942,10 @@ qux2
         let mut filesystem = TestFilesystem::new(btreemap! {
             PathBuf::from("left") => file_info("left\n"),
         });
-        let (mut files, write_root) = process_opts(
+        let DiffContext {
+            mut files,
+            write_root,
+        } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -1029,7 +1053,7 @@ qux2
             PathBuf::from("right/foo") => file_info("right contents\n"),
         });
 
-        let (files, write_root) = process_opts(
+        let DiffContext { files, write_root } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -1093,7 +1117,7 @@ qux2
             PathBuf::from("right/foo") => file_info("right contents\n"),
         });
 
-        let (files, write_root) = process_opts(
+        let DiffContext { files, write_root } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -1176,7 +1200,10 @@ Hello world 4
             PathBuf::from("right") => file_info(right_contents),
         });
 
-        let (mut files, write_root) = process_opts(
+        let DiffContext {
+            mut files,
+            write_root,
+        } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,
@@ -1306,7 +1333,10 @@ Hello world 2
             PathBuf::from("right") => file_info(new_file_contents),
         });
 
-        let (mut files, write_root) = process_opts(
+        let DiffContext {
+            mut files,
+            write_root,
+        } = process_opts(
             &filesystem,
             &Opts {
                 dir_diff: false,

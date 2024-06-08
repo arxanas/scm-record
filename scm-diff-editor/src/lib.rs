@@ -14,13 +14,12 @@ pub mod testing;
 
 use std::borrow::Cow;
 use std::collections::BTreeSet;
-use std::error;
-use std::fmt::Display;
 use std::io;
 use std::path::{Path, PathBuf, StripPrefixError};
 
 use clap::Parser;
 use scm_record::{File, FileMode, RecordError, RecordState, SelectedContents};
+use thiserror::Error;
 
 /// Render a partial commit selector for use as a difftool or mergetool.
 ///
@@ -65,108 +64,52 @@ pub struct Opts {
     pub output: Option<PathBuf>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Error)]
 #[allow(missing_docs)]
 pub enum Error {
+    #[error("aborted by user")]
     Cancelled,
+
+    #[error("dry run, not writing any files")]
     DryRun,
-    WalkDir {
-        source: walkdir::Error,
-    },
+
+    #[error("walking directory: {source}")]
+    WalkDir { source: walkdir::Error },
+
+    #[error("stripping directory prefix {root} from {path}: {source}")]
     StripPrefix {
         root: PathBuf,
         path: PathBuf,
         source: StripPrefixError,
     },
-    ReadFile {
-        path: PathBuf,
-        source: io::Error,
-    },
-    RemoveFile {
-        path: PathBuf,
-        source: io::Error,
-    },
+
+    #[error("reading file {path}: {source}")]
+    ReadFile { path: PathBuf, source: io::Error },
+
+    #[error("removing file {path}: {source}")]
+    RemoveFile { path: PathBuf, source: io::Error },
+
+    #[error("copying file {old_path} to {new_path}: {source}")]
     CopyFile {
         old_path: PathBuf,
         new_path: PathBuf,
         source: io::Error,
     },
-    CreateDirAll {
-        path: PathBuf,
-        source: io::Error,
-    },
-    WriteFile {
-        path: PathBuf,
-        source: io::Error,
-    },
-    MissingMergeFile {
-        path: PathBuf,
-    },
-    BinaryMergeFile {
-        path: PathBuf,
-    },
-    Record {
-        source: RecordError,
-    },
-}
 
-impl error::Error for Error {}
+    #[error("creating directory {path}: {source}")]
+    CreateDirAll { path: PathBuf, source: io::Error },
 
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Error::Cancelled => {
-                write!(f, "aborted by user")
-            }
-            Error::DryRun => {
-                write!(f, "dry run, not writing any files")
-            }
-            Error::WalkDir { source } => {
-                write!(f, "walking directory: {source}")
-            }
-            Error::StripPrefix { root, path, source } => {
-                write!(
-                    f,
-                    "stripping directory prefix {} from {}: {source}",
-                    root.display(),
-                    path.display()
-                )
-            }
-            Error::ReadFile { path, source } => {
-                write!(f, "reading file {}: {source}", path.display())
-            }
-            Error::RemoveFile { path, source } => {
-                write!(f, "removing file {}: {source}", path.display())
-            }
-            Error::CopyFile {
-                old_path,
-                new_path,
-                source,
-            } => {
-                write!(
-                    f,
-                    "copying file {} to {}: {source}",
-                    old_path.display(),
-                    new_path.display()
-                )
-            }
-            Error::CreateDirAll { path, source } => {
-                write!(f, "creating directory {}: {source}", path.display())
-            }
-            Error::WriteFile { path, source } => {
-                write!(f, "writing file {}: {source}", path.display())
-            }
-            Error::MissingMergeFile { path } => {
-                write!(f, "file did not exist: {}", path.display())
-            }
-            Error::BinaryMergeFile { path } => {
-                write!(f, "file was not text: {}", path.display())
-            }
-            Error::Record { source } => {
-                write!(f, "recording changes: {source}")
-            }
-        }
-    }
+    #[error("writing file {path}: {source}")]
+    WriteFile { path: PathBuf, source: io::Error },
+
+    #[error("file did not exist: {path}")]
+    MissingMergeFile { path: PathBuf },
+
+    #[error("file was not text: {path}")]
+    BinaryMergeFile { path: PathBuf },
+
+    #[error("recording changes: {source}")]
+    Record { source: RecordError },
 }
 
 /// Result type.

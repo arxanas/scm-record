@@ -4,7 +4,7 @@ description = "UI component to interactively select changes to include in a comm
 edition = "2021"
 license = "MIT OR Apache-2.0"
 name = "scm-record"
-repository = "https://github.com/arxanas/git-branchless"
+repository = "https://github.com/arxanas/scm-record"
 version = "0.3.0"
 
 # Main consumers to consider:

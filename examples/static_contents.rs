@@ -1,5 +1,5 @@
 #![warn(clippy::all, clippy::as_conversions)]
-#![allow(clippy::too_many_arguments, clippy::blocks_in_if_conditions)]
+#![allow(clippy::too_many_arguments)]
 
 use std::borrow::Cow;
 use std::path::Path;

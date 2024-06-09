@@ -19,6 +19,10 @@ You can think of this as an interactive replacement for `git add -p`, or a reimp
 $ cargo install --locked scm-diff-editor
 ```
 
+@nocommit instruct to use --force
+@nocommit add note about how they were distributed together in the past
+@nocommit add README.mds to each crate
+
 This is a standalone binary that uses the `scm-record` library as a front-end, and can be integrated directly into some source control systems:
 
 - [Git](https://git-scm.org):

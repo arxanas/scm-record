@@ -160,10 +160,10 @@ pub enum FileContents {
         /// The contents of the file.
         contents: String,
 
-        /// The hash of [`contents`].
+        /// The hash of `contents`.
         hash: String,
 
-        /// The size of [`contents`], in bytes.
+        /// The size of `contents`, in bytes.
         num_bytes: u64,
     },
 

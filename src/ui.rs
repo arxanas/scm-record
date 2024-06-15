@@ -484,6 +484,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         Self::install_panic_hook();
         let backend = CrosstermBackend::new(io::stdout());
         let mut term = Terminal::new(backend).map_err(RecordError::SetUpTerminal)?;
+        term.clear().map_err(RecordError::RenderFrame)?;
         let result = self.run_inner(&mut term);
         Self::clean_up_crossterm()?;
         result

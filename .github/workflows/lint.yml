@@ -48,3 +48,11 @@ jobs:
         with:
           command: clippy
           args: --workspace --all-features --all-targets -- --deny warnings
+
+      - name: Run `cargo doc`
+        uses: actions-rs/cargo@v1
+        env:
+          RUSTDOCFLAGS: "--deny warnings"
+        with:
+          command: clippy
+          args: --workspace --all-features --all-targets -- --deny warnings

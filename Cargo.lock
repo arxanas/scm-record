@@ -800,27 +800,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "scm-diff-editor"
+version = "0.3.0"
+dependencies = [
+ "clap",
+ "diffy",
+ "eyre",
+ "insta",
+ "maplit",
+ "scm-record",
+ "sha1",
+ "tracing",
+ "walkdir",
+]
+
+[[package]]
 name = "scm-record"
 version = "0.3.0"
 dependencies = [
  "assert_matches",
  "cassowary",
- "clap",
  "criterion",
  "crossterm",
- "diffy",
  "eyre",
  "insta",
- "maplit",
  "num-traits",
  "ratatui",
  "serde",
  "serde_json",
- "sha1",
  "thiserror",
  "tracing",
  "unicode-width",
- "walkdir",
 ]
 
 [[package]]

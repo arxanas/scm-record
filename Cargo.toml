@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["scm-record"]
+members = ["scm-diff-editor", "scm-record"]

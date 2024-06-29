@@ -13,7 +13,11 @@ You can think of this as an interactive replacement for `git add -p`, or a reimp
 
 # scm-diff-editor
 
-The `scm-diff-editor` binary is available when compiled with `--features scm-diff-editor`.
+`scm-diff-editor` is an executable that can be installed via `cargo`:
+
+```sh
+$ cargo install --locked scm-diff-editor
+```
 
 This is a standalone binary that uses the `scm-record` library as a front-end, and can be integrated directly into some source control systems:
 

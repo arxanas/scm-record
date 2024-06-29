@@ -822,7 +822,6 @@ dependencies = [
  "cassowary",
  "criterion",
  "crossterm",
- "eyre",
  "insta",
  "num-traits",
  "ratatui",

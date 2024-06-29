@@ -3,11 +3,13 @@ use std::{borrow::Cow, iter};
 
 use assert_matches::assert_matches;
 use insta::{assert_debug_snapshot, assert_snapshot};
+use scm_record::helpers::{make_binary_description, TestingInput};
 use scm_record::{
-    helpers::{make_binary_description, TestingInput},
     ChangeType, Commit, Event, File, FileMode, RecordError, RecordState, Recorder, Section,
     SectionChangedLine, TestingScreenshot,
 };
+
+type TestResult = Result<(), scm_record::RecordError>;
 
 fn example_contents() -> RecordState<'static> {
     RecordState {
@@ -98,7 +100,7 @@ fn example_contents() -> RecordState<'static> {
 }
 
 #[test]
-fn test_select_scroll_into_view() -> eyre::Result<()> {
+fn test_select_scroll_into_view() -> TestResult {
     let initial = TestingScreenshot::default();
     let scroll_to_first_section = TestingScreenshot::default();
     let scroll_to_second_file = TestingScreenshot::default();
@@ -154,7 +156,7 @@ fn test_select_scroll_into_view() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_toggle_all() -> eyre::Result<()> {
+fn test_toggle_all() -> TestResult {
     let before = TestingScreenshot::default();
     let after = TestingScreenshot::default();
     let mut input = TestingInput::new(
@@ -220,7 +222,7 @@ fn test_toggle_all() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_toggle_all_uniform() -> eyre::Result<()> {
+fn test_toggle_all_uniform() -> TestResult {
     let initial = TestingScreenshot::default();
     let first_toggle = TestingScreenshot::default();
     let second_toggle = TestingScreenshot::default();
@@ -297,7 +299,7 @@ fn test_toggle_all_uniform() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_quit_dialog_size() -> eyre::Result<()> {
+fn test_quit_dialog_size() -> TestResult {
     let expect_quit_dialog_to_be_centered = TestingScreenshot::default();
     let mut input = TestingInput::new(
         100,
@@ -359,7 +361,7 @@ fn test_quit_dialog_size() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
+fn test_quit_dialog_keyboard_navigation() -> TestResult {
     let expect_q_opens_quit_dialog = TestingScreenshot::default();
     let expect_c_does_nothing = TestingScreenshot::default();
     let expect_q_closes_quit_dialog = TestingScreenshot::default();
@@ -427,7 +429,7 @@ fn test_quit_dialog_keyboard_navigation() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_quit_dialog_buttons() -> eyre::Result<()> {
+fn test_quit_dialog_buttons() -> TestResult {
     let expect_quit_button_focused_initially = TestingScreenshot::default();
     let expect_left_focuses_go_back_button = TestingScreenshot::default();
     let expect_left_again_does_not_wrap = TestingScreenshot::default();
@@ -520,7 +522,7 @@ fn test_quit_dialog_buttons() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_enter_next() -> eyre::Result<()> {
+fn test_enter_next() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -605,7 +607,7 @@ fn test_enter_next() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_file_mode_change() -> eyre::Result<()> {
+fn test_file_mode_change() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -725,7 +727,7 @@ fn test_file_mode_change() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_abbreviate_unchanged_sections() -> eyre::Result<()> {
+fn test_abbreviate_unchanged_sections() -> TestResult {
     let num_context_lines = 3;
     let section_length = num_context_lines * 2;
     let middle_length = section_length + 1;
@@ -908,7 +910,7 @@ fn test_abbreviate_unchanged_sections() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_no_abbreviate_short_unchanged_sections() -> eyre::Result<()> {
+fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
     let num_context_lines = 3;
     let section_length = num_context_lines - 1;
     let middle_length = num_context_lines * 2;
@@ -988,7 +990,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_record_binary_file() -> eyre::Result<()> {
+fn test_record_binary_file() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -1076,7 +1078,7 @@ fn test_record_binary_file() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_record_binary_file_noop() -> eyre::Result<()> {
+fn test_record_binary_file_noop() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -1159,7 +1161,7 @@ fn test_record_binary_file_noop() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_state_binary_selected_contents() -> eyre::Result<()> {
+fn test_state_binary_selected_contents() -> TestResult {
     let test = |is_checked, binary| {
         let file = File {
             old_path: None,
@@ -1202,7 +1204,7 @@ fn test_state_binary_selected_contents() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_mouse_support() -> eyre::Result<()> {
+fn test_mouse_support() -> TestResult {
     let state = example_contents();
 
     let initial = TestingScreenshot::default();
@@ -1257,7 +1259,7 @@ fn test_mouse_support() -> eyre::Result<()> {
     Ok(())
 }
 #[test]
-fn test_mouse_click_checkbox() -> eyre::Result<()> {
+fn test_mouse_click_checkbox() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -1323,7 +1325,7 @@ fn test_mouse_click_checkbox() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_mouse_click_wide_line() -> eyre::Result<()> {
+fn test_mouse_click_wide_line() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -1413,7 +1415,7 @@ fn test_mouse_click_wide_line() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_mouse_click_dialog_buttons() -> eyre::Result<()> {
+fn test_mouse_click_dialog_buttons() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -1465,7 +1467,7 @@ fn test_mouse_click_dialog_buttons() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_render_old_path() -> eyre::Result<()> {
+fn test_render_old_path() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -1498,7 +1500,7 @@ fn test_render_old_path() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_expand() -> eyre::Result<()> {
+fn test_expand() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let after_expand = TestingScreenshot::default();
@@ -1563,7 +1565,7 @@ fn test_expand() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_expand_line_noop() -> eyre::Result<()> {
+fn test_expand_line_noop() -> TestResult {
     let state = example_contents();
     let after_select = TestingScreenshot::default();
     let after_expand_noop = TestingScreenshot::default();
@@ -1606,7 +1608,7 @@ fn test_expand_line_noop() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_expand_scroll_into_view() -> eyre::Result<()> {
+fn test_expand_scroll_into_view() -> TestResult {
     let state = example_contents();
     let before_expand = TestingScreenshot::default();
     let after_expand = TestingScreenshot::default();
@@ -1647,7 +1649,7 @@ fn test_expand_scroll_into_view() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_collapse_select_ancestor() -> eyre::Result<()> {
+fn test_collapse_select_ancestor() -> TestResult {
     let state = example_contents();
     let before_collapse = TestingScreenshot::default();
     let after_collapse = TestingScreenshot::default();
@@ -1689,7 +1691,7 @@ fn test_collapse_select_ancestor() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_focus_inner() -> eyre::Result<()> {
+fn test_focus_inner() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let inner1 = TestingScreenshot::default();
@@ -1753,7 +1755,7 @@ fn test_focus_inner() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_focus_outer() -> eyre::Result<()> {
+fn test_focus_outer() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let outer1 = TestingScreenshot::default();
@@ -1834,7 +1836,7 @@ fn test_focus_outer() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_sticky_header_scroll() -> eyre::Result<()> {
+fn test_sticky_header_scroll() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let scroll1 = TestingScreenshot::default();
@@ -1923,7 +1925,7 @@ fn test_sticky_header_scroll() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_sticky_header_click_expand() -> eyre::Result<()> {
+fn test_sticky_header_click_expand() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let after_scroll = TestingScreenshot::default();
@@ -1989,7 +1991,7 @@ fn test_sticky_header_click_expand() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_scroll_click_no_jump() -> eyre::Result<()> {
+fn test_scroll_click_no_jump() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let after_click = TestingScreenshot::default();
@@ -2030,7 +2032,7 @@ fn test_scroll_click_no_jump() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_menu_bar_scroll_into_view() -> eyre::Result<()> {
+fn test_menu_bar_scroll_into_view() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let after_scroll1 = TestingScreenshot::default();
@@ -2079,7 +2081,7 @@ fn test_menu_bar_scroll_into_view() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_expand_menu() -> eyre::Result<()> {
+fn test_expand_menu() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let after_click = TestingScreenshot::default();
@@ -2150,7 +2152,7 @@ fn test_expand_menu() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_read_only() -> eyre::Result<()> {
+fn test_read_only() -> TestResult {
     let state = RecordState {
         is_read_only: true,
         ..example_contents()
@@ -2372,7 +2374,7 @@ fn test_read_only() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_toggle_unchanged_line() -> eyre::Result<()> {
+fn test_toggle_unchanged_line() -> TestResult {
     let state = example_contents();
     let initial = TestingScreenshot::default();
     let after_toggle = TestingScreenshot::default();
@@ -2522,7 +2524,7 @@ fn test_toggle_unchanged_line() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_max_file_view_width() -> eyre::Result<()> {
+fn test_max_file_view_width() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -2589,7 +2591,7 @@ fn test_max_file_view_width() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_commit_message_view() -> eyre::Result<()> {
+fn test_commit_message_view() -> TestResult {
     let mut state = example_contents();
     state.commits = vec![Commit {
         message: Some("".to_string()),
@@ -2732,7 +2734,7 @@ fn test_commit_message_view() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_quit_dialog_when_commit_message_provided() -> eyre::Result<()> {
+fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     let mut state = example_contents();
     state.commits = vec![Commit {
         message: Some("hello".to_string()),
@@ -2818,7 +2820,7 @@ fn test_quit_dialog_when_commit_message_provided() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_prev_same_kind() -> eyre::Result<()> {
+fn test_prev_same_kind() -> TestResult {
     let initial = TestingScreenshot::default();
     let to_baz = TestingScreenshot::default();
     let to_baz_section = TestingScreenshot::default();
@@ -2962,7 +2964,7 @@ fn test_prev_same_kind() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_next_same_kind() -> eyre::Result<()> {
+fn test_next_same_kind() -> TestResult {
     let initial = TestingScreenshot::default();
     let to_baz = TestingScreenshot::default();
     let to_baz_section = TestingScreenshot::default();
@@ -3108,7 +3110,7 @@ fn test_next_same_kind() -> eyre::Result<()> {
 // Test the prev/next same kind keybindings when there is only a single section
 // of a given kind.
 #[test]
-fn test_prev_next_same_kind_single_section() -> eyre::Result<()> {
+fn test_prev_next_same_kind_single_section() -> TestResult {
     let initial = TestingScreenshot::default();
     let next = TestingScreenshot::default();
     let prev = TestingScreenshot::default();
@@ -3177,15 +3179,15 @@ fn test_prev_next_same_kind_single_section() -> eyre::Result<()> {
 
 #[cfg(feature = "serde")]
 #[test]
-fn test_deserialize() -> eyre::Result<()> {
+fn test_deserialize() -> TestResult {
     let example_json = include_str!("example_contents.json");
-    let deserialized: RecordState<'static> = serde_json::from_str(example_json)?;
+    let deserialized: RecordState<'static> = serde_json::from_str(example_json).unwrap();
     assert_eq!(example_contents(), deserialized);
     Ok(())
 }
 
 #[test]
-fn test_no_files() -> eyre::Result<()> {
+fn test_no_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),
@@ -3213,7 +3215,7 @@ fn test_no_files() -> eyre::Result<()> {
 }
 
 #[test]
-fn test_tabs_in_files() -> eyre::Result<()> {
+fn test_tabs_in_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
         commits: Default::default(),

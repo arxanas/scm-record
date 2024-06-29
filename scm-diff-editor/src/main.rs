@@ -1806,7 +1806,7 @@ Hello world 4
     }
 
     #[test]
-    fn test_new_file() -> eyre::Result<()> {
+    fn test_new_file() -> Result<()> {
         let new_file_contents = "\
 Hello world 1
 Hello world 2

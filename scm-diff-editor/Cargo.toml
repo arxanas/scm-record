@@ -14,7 +14,7 @@ rust-version = "1.74"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
-diffy = "0.3"
+diffy = "0.4"
 scm-record = { version = "0.3", path = "../scm-record" }
 sha1 = "0.10"
 thiserror = "1.0.61"

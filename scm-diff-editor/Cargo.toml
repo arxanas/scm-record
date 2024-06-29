@@ -21,6 +21,5 @@ tracing = "0.1.40"
 walkdir =  "2.5"
 
 [dev-dependencies]
-eyre = "0.6"
 insta = "1.39"
 maplit = "1.0"

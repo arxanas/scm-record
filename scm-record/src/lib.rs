@@ -21,6 +21,3 @@ pub use types::{
     SelectedContents,
 };
 pub use ui::{Event, RecordInput, Recorder, TerminalKind, TestingScreenshot};
-
-#[cfg(feature = "scm-diff-editor")]
-pub mod scm_diff_editor;

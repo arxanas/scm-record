@@ -8,7 +8,7 @@
     clippy::clone_on_ref_ptr,
     clippy::dbg_macro
 )]
-#![allow(clippy::too_many_arguments, clippy::blocks_in_conditions)]
+#![allow(clippy::too_many_arguments)]
 
 use std::borrow::Cow;
 use std::collections::BTreeSet;
@@ -22,8 +22,8 @@ use clap::Parser;
 use sha1::Digest;
 use walkdir::WalkDir;
 
-use crate::helpers::CrosstermInput;
-use crate::{File, FileMode, RecordError, RecordState, Recorder, SelectedContents};
+use scm_record::helpers::CrosstermInput;
+use scm_record::{File, FileMode, RecordError, RecordState, Recorder, SelectedContents};
 
 #[allow(missing_docs)]
 #[derive(Debug)]
@@ -303,8 +303,8 @@ mod render {
     use std::borrow::Cow;
     use std::path::PathBuf;
 
-    use crate::helpers::make_binary_description;
-    use crate::{ChangeType, File, FileMode, Section, SectionChangedLine};
+    use scm_record::helpers::make_binary_description;
+    use scm_record::{ChangeType, File, FileMode, Section, SectionChangedLine};
     use tracing::warn;
 
     use super::{Error, FileContents, FileInfo, Filesystem};
@@ -1024,7 +1024,8 @@ fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<(Vec<File<'s
 
 /// Launch the terminal user interface (TUI) tool to view/edit diffs/merge
 /// conflicts.
-pub fn scm_diff_editor_main(opts: Opts) -> Result<()> {
+fn main() -> Result<()> {
+    let opts = Opts::parse();
     let filesystem = RealFilesystem;
     let (files, write_root) = process_opts(&filesystem, &opts)?;
     let state = RecordState {
@@ -1056,7 +1057,7 @@ mod tests {
     use maplit::btreemap;
     use std::collections::BTreeMap;
 
-    use crate::Section;
+    use scm_record::Section;
 
     use super::*;
 

@@ -8,8 +8,9 @@ use std::path::Path;
 
 use thiserror::Error;
 
-/// The state used to render the changes. This is passed into [`Recorder::new`]
-/// and then updated and returned with [`Recorder::run`].
+/// The state used to render the changes. This is passed into
+/// [`crate::Recorder::new`] and then updated and returned with
+/// [`crate::Recorder::run`].
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct RecordState<'a> {
@@ -182,7 +183,7 @@ pub struct File<'a> {
     /// may be rendered by the UI.
     ///
     /// This value is not directly modified by the UI; instead, construct a
-    /// [`Section::FileMode`] and use the [`FileState::get_file_mode`] function
+    /// [`Section::FileMode`] and use the [`File::get_file_mode`] function
     /// to read a user-provided updated to the file mode function to read a
     /// user-provided updated to the file mode.
     pub file_mode: Option<FileMode>,
@@ -239,7 +240,7 @@ impl SelectedContents<'_> {
 impl File<'_> {
     /// Get the new Unix file mode. If the user selected a
     /// [`Section::FileMode`], then returns that file mode. Otherwise, returns
-    /// the `file_mode` value that this [`FileState`] was constructed with.
+    /// the `file_mode` value that this [`File`] was constructed with.
     pub fn get_file_mode(&self) -> Option<FileMode> {
         let Self {
             old_path: _,

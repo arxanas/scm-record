@@ -115,6 +115,7 @@ pub enum Event {
     QuitAccept,
     QuitCancel,
     QuitInterrupt,
+    QuitEscape,
     TakeScreenshot(TestingScreenshot),
     Redraw,
     EnsureSelectionInViewport,
@@ -139,6 +140,7 @@ pub enum Event {
     Click { row: usize, column: usize },
     ToggleCommitViewMode, // no key binding currently
     EditCommitMessage,
+    Help,
 }
 
 impl From<crossterm::event::Event> for Event {
@@ -153,6 +155,13 @@ impl From<crossterm::event::Event> for Event {
             }) => Self::QuitCancel,
 
             Event::Key(KeyEvent {
+                code: KeyCode::Esc,
+                modifiers: KeyModifiers::NONE,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::QuitEscape,
+
+            Event::Key(KeyEvent {
                 code: KeyCode::Char('c'),
                 modifiers: KeyModifiers::CONTROL,
                 kind: KeyEventKind::Press,
@@ -165,6 +174,13 @@ impl From<crossterm::event::Event> for Event {
                 kind: KeyEventKind::Press,
                 state: _,
             }) => Self::QuitAccept,
+
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('?'),
+                modifiers: KeyModifiers::NONE,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::Help,
 
             Event::Key(KeyEvent {
                 code: KeyCode::Up | KeyCode::Char('y'),
@@ -385,6 +401,7 @@ enum StateUpdate {
     SetQuitDialog(Option<QuitDialog>),
     QuitAccept,
     QuitCancel,
+    SetHelpDialog(Option<HelpDialog>),
     TakeScreenshot(TestingScreenshot),
     Redraw,
     EnsureSelectionInViewport,
@@ -429,6 +446,7 @@ pub struct Recorder<'state, 'input> {
     selection_key: SelectionKey,
     focused_commit_idx: usize,
     quit_dialog: Option<QuitDialog>,
+    help_dialog: Option<HelpDialog>,
     scroll_offset_y: isize,
 }
 
@@ -454,6 +472,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             selection_key: SelectionKey::None,
             focused_commit_idx: 0,
             quit_dialog: None,
+            help_dialog: None,
             scroll_offset_y: 0,
         };
         recorder.expand_initial_items();
@@ -598,7 +617,16 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     StateUpdate::SetQuitDialog(quit_dialog) => {
                         self.quit_dialog = quit_dialog;
                     }
-                    StateUpdate::QuitAccept => break 'outer,
+                    StateUpdate::SetHelpDialog(help_dialog) => {
+                        self.help_dialog = help_dialog;
+                    }
+                    StateUpdate::QuitAccept => {
+                        if self.help_dialog.is_some() {
+                            self.help_dialog = None;
+                        } else {
+                            break 'outer;
+                        }
+                    }
                     StateUpdate::QuitCancel => return Err(RecordError::Cancelled),
                     StateUpdate::TakeScreenshot(screenshot) => {
                         let backend: &dyn Any = term.backend();
@@ -840,6 +868,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             commit_view_mode: self.commit_view_mode,
             commit_views,
             quit_dialog: self.quit_dialog.clone(),
+            help_dialog: self.help_dialog.clone(),
         }
     }
 
@@ -1004,6 +1033,19 @@ impl<'state, 'input> Recorder<'state, 'input> {
             (_, Event::Redraw) => StateUpdate::Redraw,
             (_, Event::EnsureSelectionInViewport) => StateUpdate::EnsureSelectionInViewport,
 
+            (
+                _,
+                Event::Help
+                | Event::QuitEscape
+                | Event::QuitCancel
+                | Event::ToggleItem
+                | Event::ToggleItemAndAdvance,
+            ) if self.help_dialog.is_some() => {
+                // there is only one button in the help dialog, so 'toggle*' means "click close"
+                StateUpdate::SetHelpDialog(None)
+            }
+            (_, Event::Help) => StateUpdate::SetHelpDialog(Some(HelpDialog())),
+
             // Confirm the changes.
             (None, Event::QuitAccept) => StateUpdate::QuitAccept,
             // Ignore the confirm action if the quit dialog is open.
@@ -1023,8 +1065,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     StateUpdate::QuitCancel
                 }
             }
-            // If pressing quit again while the dialog is open, close it.
-            (Some(_), Event::QuitCancel) => StateUpdate::SetQuitDialog(None),
+            // If pressing quit again, or escape, while the dialog is open, close it.
+            (Some(_), Event::QuitCancel | Event::QuitEscape) => StateUpdate::SetQuitDialog(None),
             // If pressing ctrl-c again wile the dialog is open, force quit.
             (Some(_), Event::QuitInterrupt) => StateUpdate::QuitCancel,
             // Select left quit dialog button.
@@ -1163,6 +1205,9 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 self.click_component(menu_bar, component_id)
             }
             (_, Event::ToggleCommitViewMode) => StateUpdate::ToggleCommitViewMode,
+
+            // generally ignore escape key
+            (_, Event::QuitEscape) => StateUpdate::None,
         };
         Ok(state_update)
     }
@@ -1622,6 +1667,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         | ComponentId::SelectableItem(_)
                         | ComponentId::ToggleBox(_)
                         | ComponentId::ExpandBox(_)
+                        | ComponentId::HelpDialog
+                        | ComponentId::HelpDialogQuitButton
                         | ComponentId::QuitDialog
                         | ComponentId::QuitDialogButton(_) => true,
                     }
@@ -1683,6 +1730,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 StateUpdate::SetQuitDialog(None)
             }
             ComponentId::QuitDialogButton(QuitDialogButtonId::Quit) => StateUpdate::QuitCancel,
+            ComponentId::HelpDialog => StateUpdate::None,
+            ComponentId::HelpDialogQuitButton => StateUpdate::SetHelpDialog(None),
         }
     }
 
@@ -2105,6 +2154,8 @@ enum ComponentId {
     ExpandBox(SelectionKey),
     QuitDialog,
     QuitDialogButton(QuitDialogButtonId),
+    HelpDialog,
+    HelpDialogQuitButton,
 }
 
 #[derive(Clone, Debug)]
@@ -2193,6 +2244,7 @@ struct AppView<'a> {
     commit_view_mode: CommitViewMode,
     commit_views: Vec<CommitView<'a>>,
     quit_dialog: Option<QuitDialog>,
+    help_dialog: Option<HelpDialog>,
 }
 
 impl Component for AppView<'_> {
@@ -2209,6 +2261,7 @@ impl Component for AppView<'_> {
             commit_view_mode,
             commit_views,
             quit_dialog,
+            help_dialog,
         } = self;
 
         if let Some(debug_info) = debug_info {
@@ -2258,6 +2311,9 @@ impl Component for AppView<'_> {
 
         if let Some(quit_dialog) = quit_dialog {
             viewport.draw_component(0, 0, quit_dialog);
+        }
+        if let Some(help_dialog) = help_dialog {
+            viewport.draw_component(0, 0, help_dialog);
         }
     }
 }
@@ -3265,6 +3321,38 @@ impl Component for QuitDialog {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+struct HelpDialog();
+
+impl Component for HelpDialog {
+    type Id = ComponentId;
+
+    fn id(&self) -> Self::Id {
+        ComponentId::HelpDialog
+    }
+
+    fn draw(&self, viewport: &mut Viewport<Self::Id>, _: isize, _: isize) {
+        let title = "Help";
+        let body = "You can click the menus with the mouse to view keyboard shortcuts.";
+
+        let quit_button = Button {
+            id: ComponentId::HelpDialogQuitButton,
+            label: Cow::Borrowed("Close"),
+            style: Style::default(),
+            is_focused: true,
+        };
+
+        let buttons = [quit_button];
+        let dialog = Dialog {
+            id: self.id(),
+            title: Cow::Borrowed(title),
+            body: Cow::Borrowed(body),
+            buttons: &buttons,
+        };
+        viewport.draw_component(0, 0, &dialog);
+    }
+}
+
 struct Button<'a, Id> {
     id: Id,
     label: Cow<'a, str>,
@@ -3328,13 +3416,14 @@ impl<Id: Clone + Debug + Eq + Hash> Component for Dialog<'_, Id> {
         } = self;
         let rect = {
             let border_size = 2;
+            let body_lines = body.lines().count();
             let rect = centered_rect(
                 viewport.rect(),
                 RectSize {
                     // FIXME: we might want to limit the width of the text and
                     // let `Paragraph` wrap it.
                     width: body.width() + border_size,
-                    height: 1 + border_size,
+                    height: body_lines + border_size,
                 },
                 60,
                 20,

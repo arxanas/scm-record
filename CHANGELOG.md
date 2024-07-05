@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- (#58) Pressing question mark '?' pops up a help dialog.
 
 ## [0.3.0] - 2024-05-26
 

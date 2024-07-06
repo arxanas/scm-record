@@ -3321,3 +3321,86 @@ fn test_tabs_in_files() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+fn test_carriage_return() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo")),
+            file_mode: None,
+            sections: vec![Section::Changed {
+                lines: vec![
+                    SectionChangedLine {
+                        is_checked: false,
+                        change_type: ChangeType::Removed,
+                        line: Cow::Borrowed("before text\n"),
+                    },
+                    SectionChangedLine {
+                        is_checked: false,
+                        change_type: ChangeType::Added,
+                        line: Cow::Borrowed("before text\r\n"),
+                    },
+                ],
+            }],
+        }],
+    };
+
+    let initial = TestingScreenshot::default();
+    let focus = TestingScreenshot::default();
+    let unfocus = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        8,
+        [
+            Event::ExpandAll,
+            initial.event(),
+            Event::FocusNext,
+            Event::FocusNext,
+            focus.event(),
+            Event::FocusPrev,
+            Event::FocusPrev,
+            unfocus.event(),
+            Event::QuitAccept,
+        ],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] Section 1/1                                                            [-]"
+    "    [ ] - before text⏎                                                          "
+    "    [ ] + before text␍⏎                                                         "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    insta::assert_snapshot!(focus, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[ ] foo                                                                      [-]"
+    "  [ ] Section 1/1                                                            [-]"
+    "    ( ) - before text⏎                                                          "
+    "    [ ] + before text␍⏎                                                         "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    insta::assert_snapshot!(unfocus, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] Section 1/1                                                            [-]"
+    "    [ ] - before text⏎                                                          "
+    "    [ ] + before text␍⏎                                                         "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}

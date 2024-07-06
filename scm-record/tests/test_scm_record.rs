@@ -3446,3 +3446,45 @@ fn test_some_control_characters() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+fn test_non_printing_characters() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo")),
+            file_mode: None,
+            sections: vec![Section::Changed {
+                lines: vec![SectionChangedLine {
+                    is_checked: false,
+                    change_type: ChangeType::Added,
+                    line: Cow::Borrowed("zwj:\u{200d}, zwnj:\u{200c}"),
+                }],
+            }],
+        }],
+    };
+
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        8,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] Section 1/1                                                            [-]"
+    "    [ ] + zwj:�, zwnj:�                                                         "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}

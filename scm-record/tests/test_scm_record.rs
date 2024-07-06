@@ -3404,3 +3404,45 @@ fn test_carriage_return() -> TestResult {
 
     Ok(())
 }
+
+#[test]
+fn test_some_control_characters() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo")),
+            file_mode: None,
+            sections: vec![Section::Changed {
+                lines: vec![SectionChangedLine {
+                    is_checked: false,
+                    change_type: ChangeType::Added,
+                    line: Cow::Borrowed("nul:\0, bel:\x07, esc:\x1b, del:\x7f\n"),
+                }],
+            }],
+        }],
+    };
+
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        8,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] Section 1/1                                                            [-]"
+    "    [ ] + nul:␀, bel:␇, esc:␛, del:␡⏎                                           "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}

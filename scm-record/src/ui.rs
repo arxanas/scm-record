@@ -3099,6 +3099,7 @@ fn replace_control_character(character: char) -> Option<&'static str> {
         // with a known length string fixes the issue for now.
         '\t' => Some("→   "),
         '\n' => Some("⏎"),
+        '\r' => Some("␍"),
         _ => None,
     }
 }

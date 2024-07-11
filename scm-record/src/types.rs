@@ -273,14 +273,18 @@ impl File<'_> {
     /// example, the first value would be suitable for staging or committing,
     /// and the second value would be suitable for potentially recording again.
     pub fn get_selected_contents(&self) -> (SelectedContents, SelectedContents) {
-        let mut acc_selected = SelectedContents::Absent;
-        let mut acc_unselected = SelectedContents::Absent;
         let Self {
             old_path: _,
             path: _,
-            file_mode: _,
+            file_mode,
             sections,
         } = self;
+        let mut acc_selected = if file_mode == &None || file_mode == &Some(FileMode::absent()) {
+            SelectedContents::Absent
+        } else {
+            SelectedContents::Unchanged
+        };
+        let mut acc_unselected = SelectedContents::Unchanged;
         for section in sections {
             match section {
                 Section::Unchanged { lines } => {
@@ -303,6 +307,9 @@ impl File<'_> {
                             }
                             (ChangeType::Added, false) | (ChangeType::Removed, true) => {
                                 acc_unselected.push_str(line);
+                                if acc_selected == SelectedContents::Unchanged {
+                                    acc_selected.push_str("");
+                                }
                             }
                         }
                     }
@@ -315,7 +322,13 @@ impl File<'_> {
                 } => {
                     if *is_checked && after == &FileMode::absent() {
                         acc_selected = SelectedContents::Absent;
+                    } else if *is_checked && after != &FileMode::absent() {
+                        acc_selected = SelectedContents::Present {
+                            contents: "".to_string(),
+                        };
                     } else if !is_checked && before == &FileMode::absent() {
+                        acc_selected = SelectedContents::Absent;
+                    } else if !is_checked && after == &FileMode::absent() {
                         acc_unselected = SelectedContents::Absent;
                     }
                 }
@@ -331,7 +344,6 @@ impl File<'_> {
                     };
                     if *is_checked {
                         acc_selected = selected_contents;
-                        acc_unselected = SelectedContents::Unchanged;
                     } else {
                         acc_selected = SelectedContents::Unchanged;
                         acc_unselected = selected_contents;

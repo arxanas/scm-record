@@ -279,7 +279,7 @@ impl File<'_> {
             file_mode,
             sections,
         } = self;
-        let mut acc_selected = if file_mode == &None || file_mode == &Some(FileMode::absent()) {
+        let mut acc_selected = if file_mode.is_none() || file_mode == &Some(FileMode::absent()) {
             SelectedContents::Absent
         } else {
             SelectedContents::Unchanged

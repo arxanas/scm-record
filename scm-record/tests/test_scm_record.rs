@@ -436,6 +436,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     let expect_back_button_closes_quit_dialog = TestingScreenshot::default();
     let expect_right_focuses_quit_button = TestingScreenshot::default();
     let expect_right_again_does_not_wrap = TestingScreenshot::default();
+    let expect_ctrl_left_focuses_go_back_button = TestingScreenshot::default();
     let expect_exited = TestingScreenshot::default();
     let mut input = TestingInput::new(
         80,
@@ -445,23 +446,30 @@ fn test_quit_dialog_buttons() -> TestResult {
             Event::QuitCancel,
             expect_quit_button_focused_initially.event(),
             // Pressing left should select the back button.
-            Event::FocusOuter,
+            Event::FocusOuter { fold_section: true },
             expect_left_focuses_go_back_button.event(),
             // Pressing left again should do nothing.
-            Event::FocusOuter,
+            Event::FocusOuter { fold_section: true },
             expect_left_again_does_not_wrap.event(),
             // Selecting the back button should close the dialog.
             Event::ToggleItem,
             expect_back_button_closes_quit_dialog.event(),
             Event::QuitCancel,
             // Pressing right should select the quit button.
-            Event::FocusOuter,
+            Event::FocusOuter { fold_section: true },
             Event::FocusInner,
             expect_right_focuses_quit_button.event(),
             // Pressing right again should do nothing.
             Event::FocusInner,
             expect_right_again_does_not_wrap.event(),
+            // We have two ways to focus outer, with and without folding.
+            // Both should navigate properly in this menu.
+            Event::FocusOuter {
+                fold_section: false,
+            },
+            expect_ctrl_left_focuses_go_back_button.event(),
             // Selecting the quit button should quit.
+            Event::FocusInner,
             Event::ToggleItem,
             expect_exited.event(),
         ],
@@ -514,6 +522,14 @@ fn test_quit_dialog_buttons() -> TestResult {
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "###);
+    insta::assert_snapshot!(expect_ctrl_left_focuses_go_back_button, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
+    "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "###);
@@ -1772,13 +1788,21 @@ fn test_focus_outer() -> TestResult {
             Event::FocusNext,
             Event::FocusNext,
             initial.event(),
-            Event::FocusOuter,
+            Event::FocusOuter {
+                fold_section: false,
+            },
             outer1.event(),
-            Event::FocusOuter,
+            Event::FocusOuter {
+                fold_section: false,
+            },
             outer2.event(),
-            Event::FocusOuter,
+            Event::FocusOuter {
+                fold_section: false,
+            },
             outer3.event(),
-            Event::FocusOuter,
+            Event::FocusOuter {
+                fold_section: false,
+            },
             outer4.event(),
             Event::QuitAccept,
         ],
@@ -1823,6 +1847,99 @@ fn test_focus_outer() -> TestResult {
     "                                                                                "
     "###);
     insta::assert_snapshot!(outer4, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(●) baz                                                                      (+)"
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}
+
+#[test]
+fn test_focus_outer_fold_section() -> TestResult {
+    let state = example_contents();
+    let initial = TestingScreenshot::default();
+    let outer1 = TestingScreenshot::default();
+    let outer2 = TestingScreenshot::default();
+    let outer3 = TestingScreenshot::default();
+    let outer4 = TestingScreenshot::default();
+    let outer5 = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        7,
+        [
+            Event::FocusNext,
+            Event::ExpandItem,
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::FocusNext,
+            initial.event(),
+            Event::FocusOuter { fold_section: true },
+            outer1.event(),
+            Event::FocusOuter { fold_section: true },
+            outer2.event(),
+            Event::FocusOuter { fold_section: true },
+            outer3.event(),
+            Event::FocusOuter { fold_section: true },
+            outer4.event(),
+            Event::FocusOuter { fold_section: true },
+            outer5.event(),
+            Event::QuitAccept,
+        ],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[●] baz                                                                      [-]"
+    "  [●] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    (●) - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "###);
+    insta::assert_snapshot!(outer1, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[●] baz                                                                      [-]"
+    "  (●) Section 1/1                                                            (-)"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "###);
+    insta::assert_snapshot!(outer2, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[●] baz                                                                      [±]"
+    "  (●) Section 1/1                                                            (+)"
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(outer3, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(●) baz                                                                      (±)"
+    "  [●] Section 1/1                                                            [+]"
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(outer4, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(●) baz                                                                      (+)"
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(outer5, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(●) baz                                                                      (+)"
     "                                                                                "

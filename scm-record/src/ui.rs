@@ -124,20 +124,30 @@ pub enum Event {
     PageUp,
     PageDown,
     FocusPrev,
-    FocusPrevSameKind, // focus on the previous item of the same kind (i.e. file, section, line)
+    /// Move focus to the previous item of the same kind (i.e. file, section, line).
+    FocusPrevSameKind,
     FocusPrevPage,
     FocusNext,
-    FocusNextSameKind, // focus on the next item of the same kind
+    /// Move focus to the next item of the same kind.
+    FocusNextSameKind,
     FocusNextPage,
     FocusInner,
-    FocusOuter,
+    /// If `fold_section` is true, and the current section is expanded, the
+    /// section should be collapsed without moving focus. Otherwise, move the
+    /// focus outwards.
+    FocusOuter {
+        fold_section: bool,
+    },
     ToggleItem,
     ToggleItemAndAdvance,
     ToggleAll,
     ToggleAllUniform,
     ExpandItem,
     ExpandAll,
-    Click { row: usize, column: usize },
+    Click {
+        row: usize,
+        column: usize,
+    },
     ToggleCommitViewMode, // no key binding currently
     EditCommitMessage,
     Help,
@@ -248,13 +258,22 @@ impl From<crossterm::event::Event> for Event {
 
             Event::Key(KeyEvent {
                 code: KeyCode::Left | KeyCode::Char('h'),
-                modifiers: KeyModifiers::NONE | KeyModifiers::CONTROL,
+                modifiers: KeyModifiers::SHIFT,
                 kind: KeyEventKind::Press,
                 state: _,
-            }) => Self::FocusOuter,
+            }) => Self::FocusOuter {
+                fold_section: false,
+            },
+            Event::Key(KeyEvent {
+                code: KeyCode::Left | KeyCode::Char('h'),
+                modifiers: KeyModifiers::NONE,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::FocusOuter { fold_section: true },
             Event::Key(KeyEvent {
                 code: KeyCode::Right | KeyCode::Char('l'),
-                modifiers: KeyModifiers::NONE | KeyModifiers::CONTROL,
+                // The shift modifier is accepted for continuity with FocusOuter.
+                modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
                 kind: KeyEventKind::Press,
                 state: _,
             }) => Self::FocusInner,
@@ -774,11 +793,19 @@ impl<'state, 'input> Recorder<'state, 'input> {
                             event: Event::FocusNextSameKind,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Outer item (left, h)"),
-                            event: Event::FocusOuter,
+                            label: Cow::Borrowed(
+                                "Outer item without folding (shift-left, shift-h)",
+                            ),
+                            event: Event::FocusOuter {
+                                fold_section: false,
+                            },
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Inner item (right, l)"),
+                            label: Cow::Borrowed("Outer item with folding (left, h)"),
+                            event: Event::FocusOuter { fold_section: true },
+                        },
+                        MenuItem {
+                            label: Cow::Borrowed("Inner item with unfolding (right, l)"),
                             event: Event::FocusInner,
                         },
                         MenuItem {
@@ -1070,7 +1097,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             // If pressing ctrl-c again wile the dialog is open, force quit.
             (Some(_), Event::QuitInterrupt) => StateUpdate::QuitCancel,
             // Select left quit dialog button.
-            (Some(quit_dialog), Event::FocusOuter) => {
+            (Some(quit_dialog), Event::FocusOuter { .. }) => {
                 StateUpdate::SetQuitDialog(Some(QuitDialog {
                     focused_button: QuitDialogButtonId::GoBack,
                     ..quit_dialog.clone()
@@ -1179,7 +1206,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     ensure_in_viewport: true,
                 }
             }
-            (None, Event::FocusOuter) => self.select_outer(),
+            (None, Event::FocusOuter { fold_section }) => self.select_outer(fold_section),
             (None, Event::FocusInner) => {
                 let selection_key = self.select_inner();
                 StateUpdate::SelectItem {
@@ -1490,23 +1517,31 @@ impl<'state, 'input> Recorder<'state, 'input> {
             .unwrap_or(self.selection_key)
     }
 
-    fn select_outer(&self) -> StateUpdate {
+    fn select_outer(&self, fold_section: bool) -> StateUpdate {
         match self.selection_key {
             SelectionKey::None => StateUpdate::None,
             selection_key @ SelectionKey::File(_) => {
                 StateUpdate::SetExpandItem(selection_key, false)
             }
-            SelectionKey::Section(SectionKey {
+            selection_key @ SelectionKey::Section(SectionKey {
                 commit_idx,
                 file_idx,
                 section_idx: _,
-            }) => StateUpdate::SelectItem {
-                selection_key: SelectionKey::File(FileKey {
-                    commit_idx,
-                    file_idx,
-                }),
-                ensure_in_viewport: true,
-            },
+            }) => {
+                // If folding is requested and the selection is expanded,
+                // collapse it. Otherwise, move the selection to the file.
+                if fold_section && self.expanded_items.contains(&selection_key) {
+                    StateUpdate::SetExpandItem(selection_key, false)
+                } else {
+                    StateUpdate::SelectItem {
+                        selection_key: SelectionKey::File(FileKey {
+                            commit_idx,
+                            file_idx,
+                        }),
+                        ensure_in_viewport: true,
+                    }
+                }
+            }
             SelectionKey::Line(LineKey {
                 commit_idx,
                 file_idx,

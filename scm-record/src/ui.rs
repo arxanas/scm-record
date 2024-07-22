@@ -248,13 +248,13 @@ impl From<crossterm::event::Event> for Event {
 
             Event::Key(KeyEvent {
                 code: KeyCode::Left | KeyCode::Char('h'),
-                modifiers: KeyModifiers::NONE,
+                modifiers: KeyModifiers::NONE | KeyModifiers::CONTROL,
                 kind: KeyEventKind::Press,
                 state: _,
             }) => Self::FocusOuter,
             Event::Key(KeyEvent {
                 code: KeyCode::Right | KeyCode::Char('l'),
-                modifiers: KeyModifiers::NONE,
+                modifiers: KeyModifiers::NONE | KeyModifiers::CONTROL,
                 kind: KeyEventKind::Press,
                 state: _,
             }) => Self::FocusInner,

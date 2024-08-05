@@ -21,7 +21,7 @@ serde = ["dep:serde", "dep:serde_json"]
 
 [dependencies]
 cassowary = "0.3"
-crossterm = "0.27"
+crossterm = "0.28"
 num-traits = "0.2"
 thiserror = "1.0"
 tracing = "0.1"

@@ -8,9 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.4.0] - 2024-10-09
+
 ### Added
 
-- (#58) Pressing question mark '?' pops up a help dialog.
+- (#45): ctrl-up and ctrl-down added as keyboard shortcuts to scroll by individual lines.
+- (#45): ctrl-page-up and ctrl-page-down added as keyboard shortcuts to scroll by pages.
+- (#58): Pressing question mark '?' pops up a help dialog.
+
+### Changed
+
+- BREAKING (#45): page-up and page-down now jump to the next section of the same type. The old behavior can be accessed with ctrl-page-up and ctrl-page-down.
+- BREAKING (#52): Minimum supported Rust version (MSRV) is now 1.74.
+- BREAKING (#53): `scm-diff-editor` has been extracted to its own crate and can be installed as its own stand-alone binary.
+- (#46): Checkmarks changed to Unicode symobls.
+- (#61): Control characters are replaced with Unicode symbols for rendering.
+
+### Fixed
+
+- (#37): Fixed redraw issues when rendering tabs and other non-printing characters.
 
 ## [0.3.0] - 2024-05-26
 

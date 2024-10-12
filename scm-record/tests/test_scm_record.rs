@@ -1198,7 +1198,7 @@ fn test_state_binary_selected_contents() -> TestResult {
     // the UI to never allow selecting both).
     assert_snapshot!(test(false, true), @r###"(Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") }, Unchanged)"###);
 
-    assert_snapshot!(test(true, true), @r###"(Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") }, Unchanged)"###);
+    assert_snapshot!(test(true, true), @r###"(Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") }, Present { contents: "foo\n" })"###);
 
     Ok(())
 }

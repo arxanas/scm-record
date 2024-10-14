@@ -26,7 +26,7 @@ num-traits = "0.2"
 thiserror = "1.0"
 tracing = "0.1"
 ratatui = "0.28.1"
-unicode-width = "0.1"
+unicode-width = "0.2"
 
 # Features: serde
 serde = { version = "1.0", features = ["serde_derive"], optional = true }

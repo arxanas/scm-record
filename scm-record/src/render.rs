@@ -410,7 +410,7 @@ impl<'a, ComponentId: Clone + Debug + Eq + Hash> Viewport<'a, ComponentId> {
         component: &C,
     ) -> DrawnRects<C::Id> {
         let widget = TopLevelWidget { component, x, y };
-        let term_area = frame.size();
+        let term_area = frame.area();
         let mut drawn_rects = Default::default();
         frame.render_stateful_widget(widget, term_area, &mut drawn_rects);
         drawn_rects

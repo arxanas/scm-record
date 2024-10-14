@@ -564,7 +564,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         'outer: loop {
             let menu_bar = self.make_menu_bar();
             let app = self.make_app(menu_bar.clone(), None);
-            let term_height = usize::from(term.get_frame().size().height);
+            let term_height = usize::from(term.get_frame().area().height);
 
             let mut drawn_rects: Option<DrawnRects<ComponentId>> = None;
             term.draw(|frame| {

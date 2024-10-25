@@ -40,19 +40,18 @@ The `scm-diff-editor` executable can be used with these tools:
 
 Here are some features in the UI which are not yet implemented:
 
-- Make the keybindings easier to discover, allow accessing the menu with the keyboard.
-- Jump to next/previous element of same kind.
-- Edit one side of the diff in an editor.
-- Multi-way split UI to split a commit into more than 2 commits.
-- Support for use as a mergetool.
-- Commands to select ours/theirs for diffs representing merge conflicts.
-
+- [ ] Make the keybindings easier to discover (https://github.com/arxanas/scm-record/issues/25).
+- [ ] Support accessing the menu with the keyboard (https://github.com/arxanas/scm-record/issues/44).
+- [ ] Edit one side of the diff in an editor.
+- [ ] Multi-way split UI to split a commit into more than 2 commits (https://github.com/arxanas/scm-record/issues/73).
+- [ ] Support for use as a mergetool.
+- [ ] Commands to select ours/theirs for diffs representing merge conflicts.
 
 ## Integration with other projects
 
 Here's some projects that don't use `scm-record`, but could benefit from integration with it (with your contribution):
 
-- [Sapling](https://sapling-scm.com/).
+- [Sapling](https://sapling-scm.com/)
 - [Stacked Git](https://stacked-git.github.io/)
 - [Pijul](https://pijul.org/)
 - [gitoxide/ein](https://github.com/Byron/gitoxide)

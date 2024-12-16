@@ -2324,7 +2324,7 @@ struct CommitMessageView<'a> {
     commit: &'a Commit,
 }
 
-impl<'a> Component for CommitMessageView<'a> {
+impl Component for CommitMessageView<'_> {
     type Id = ComponentId;
 
     fn id(&self) -> Self::Id {
@@ -2398,7 +2398,7 @@ struct CommitView<'a> {
     file_views: Vec<FileView<'a>>,
 }
 
-impl<'a> CommitView<'a> {
+impl CommitView<'_> {
     const MARGIN: usize = 1;
 }
 
@@ -3399,7 +3399,7 @@ struct Button<'a, Id> {
     is_focused: bool,
 }
 
-impl<'a, Id> Button<'a, Id> {
+impl<Id> Button<'_, Id> {
     fn span(&self) -> Span {
         let Self {
             id: _,

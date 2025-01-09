@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+## [0.5.0] - 2025-01-10
+
+### Changed
+
+- BREAKING (#39): Pressing the "left" or "h" keys now folds the current section if it is unfolded instead of moving to the outer item. You can still move to the outer item directly without automatic folding by pressing shift-left or shift-h.
+
 ## [0.4.0] - 2024-10-09
 
 ### Added

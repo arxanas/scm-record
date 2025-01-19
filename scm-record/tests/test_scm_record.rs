@@ -305,6 +305,7 @@ fn test_quit_dialog_size() -> TestResult {
         100,
         40,
         [
+            Event::ToggleAllUniform,
             Event::ExpandAll,
             Event::QuitInterrupt,
             expect_quit_dialog_to_be_centered.event(),
@@ -317,16 +318,16 @@ fn test_quit_dialog_size() -> TestResult {
     assert_matches!(result, Err(RecordError::Cancelled));
     insta::assert_snapshot!(expect_quit_dialog_to_be_centered, @r###"
     "[File] [Edit] [Select] [View]                                                                       "
-    "(◐) foo/bar                                                                                      (-)"
+    "(●) foo/bar                                                                                      (-)"
     "        ⋮                                                                                           "
     "       18 this is some text⏎                                                                        "
     "       19 this is some text⏎                                                                        "
     "       20 this is some text⏎                                                                        "
-    "  [◐] Section 1/1                                                                                [-]"
+    "  [●] Section 1/1                                                                                [-]"
     "    [●] - before text 1⏎                                                                            "
     "    [●] - before text 2⏎                                                                            "
     "    [●] + after text 1⏎                                                                             "
-    "    [ ] + after text 2⏎                                                                             "
+    "    [●] + after text 2⏎                                                                             "
     "       23 this is some trailing text⏎                                                               "
     "[●] baz                                                                                          [-]"
     "        1 Some leading text 1⏎                                                                      "
@@ -371,6 +372,7 @@ fn test_quit_dialog_keyboard_navigation() -> TestResult {
         80,
         6,
         [
+            Event::ToggleAllUniform,
             Event::ExpandAll,
             // Pressing 'q' should display the quit dialog.
             Event::QuitCancel,
@@ -394,7 +396,7 @@ fn test_quit_dialog_keyboard_navigation() -> TestResult {
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
     insta::assert_snapshot!(expect_q_opens_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
@@ -402,7 +404,7 @@ fn test_quit_dialog_keyboard_navigation() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_c_does_nothing, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
@@ -410,7 +412,7 @@ fn test_quit_dialog_keyboard_navigation() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_q_closes_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/bar                                                                  (-)"
+    "(●) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -418,7 +420,7 @@ fn test_quit_dialog_keyboard_navigation() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_ctrl_c_opens_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
@@ -442,6 +444,7 @@ fn test_quit_dialog_buttons() -> TestResult {
         80,
         6,
         [
+            Event::ToggleAllUniform,
             Event::ExpandAll,
             Event::QuitCancel,
             expect_quit_button_focused_initially.event(),
@@ -479,7 +482,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
     insta::assert_snapshot!(expect_quit_button_focused_initially, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
@@ -487,7 +490,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_left_focuses_go_back_button, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
@@ -495,7 +498,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_left_again_does_not_wrap, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
@@ -503,7 +506,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_back_button_closes_quit_dialog, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/bar                                                                  (-)"
+    "(●) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -511,7 +514,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_right_focuses_quit_button, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
@@ -519,7 +522,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_right_again_does_not_wrap, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
@@ -527,7 +530,7 @@ fn test_quit_dialog_buttons() -> TestResult {
     "###);
     insta::assert_snapshot!(expect_ctrl_left_focuses_go_back_button, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
+    "(●) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
@@ -2932,7 +2935,6 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     "                                                                                "
     "                                                                                "
     "###);
-
     Ok(())
 }
 

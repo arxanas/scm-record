@@ -342,6 +342,37 @@ impl File<'_> {
         (acc_selected, acc_unselected)
     }
 
+    pub(crate) fn collect_is_checked(&self) -> Vec<bool> {
+        let Self {
+            old_path: _,
+            path: _,
+            file_mode: _,
+            sections,
+        } = self;
+        let mut res = vec![];
+        for section in sections {
+            match section {
+                Section::Unchanged { .. } => (),
+                Section::Changed { lines } => {
+                    for line in lines {
+                        res.push(line.is_checked)
+                    }
+                }
+                Section::FileMode {
+                    is_checked,
+                    before: _,
+                    after: _,
+                }
+                | Section::Binary {
+                    is_checked,
+                    old_description: _,
+                    new_description: _,
+                } => res.push(*is_checked),
+            }
+        }
+        res
+    }
+
     /// Get the tristate value of the file. If there are no sections in this
     /// file, returns `Tristate::False`.
     pub fn tristate(&self) -> Tristate {

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- (#90): The "confirm you want to quit" dialog now shows up when checkboxes differ from
+  the initial state, instead of when any checkbox is checked.
+
 ## [0.5.0] - 2025-01-10
 
 ### Changed

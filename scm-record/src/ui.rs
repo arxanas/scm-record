@@ -456,6 +456,7 @@ enum CommitViewMode {
 /// UI component to record the user's changes.
 pub struct Recorder<'state, 'input> {
     state: RecordState<'state>,
+    initial_checkboxes: Vec<Vec<bool>>,
     input: &'input mut dyn RecordInput,
     pending_events: Vec<Event>,
     use_unicode: bool,
@@ -479,9 +480,14 @@ impl<'state, 'input> Recorder<'state, 'input> {
         if state.commits.len() > 2 {
             unimplemented!("more than two commits");
         }
-
+        let initial_checkboxes = state
+            .files
+            .iter()
+            .map(|file| file.collect_is_checked())
+            .collect();
         let mut recorder = Self {
             state,
+            initial_checkboxes,
             input,
             pending_events: Default::default(),
             use_unicode: true,
@@ -1273,15 +1279,19 @@ impl<'state, 'input> Recorder<'state, 'input> {
             commits: _,
             is_read_only: _,
         } = &self.state;
+
         let mut result = 0;
-        for (file_idx, _file) in files.iter().enumerate() {
-            match self.file_tristate(FileKey {
-                commit_idx: self.focused_commit_idx,
-                file_idx,
-            })? {
-                Tristate::False => {}
-                Tristate::Partial | Tristate::True => {
-                    result += 1;
+        for (file_idx, file) in files.iter().enumerate() {
+            match self.initial_checkboxes.get(file_idx) {
+                None => {
+                    return Err(RecordError::Bug(format!(
+                        "Out-of-bounds file key: {file_idx:?}"
+                    )))
+                }
+                Some(initial_checkboxes) => {
+                    if initial_checkboxes != &file.collect_is_checked() {
+                        result += 1
+                    }
                 }
             }
         }

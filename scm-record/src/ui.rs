@@ -22,8 +22,8 @@ use crossterm::terminal::{
 };
 use ratatui::backend::{Backend, TestBackend};
 use ratatui::buffer::Buffer;
-use ratatui::style::{Color, Modifier, Style};
-use ratatui::text::{Line, Span};
+use ratatui::style::{Color, Modifier, Style, Stylize};
+use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tracing::warn;
@@ -3501,7 +3501,7 @@ impl Component for QuitDialog {
         } else {
             format!("You have changes to {}. ", alert_items.join(" and "))
         };
-        let body = format!("{alert}Are you sure you want to quit?",);
+        let body = Text::from(format!("{alert}Are you sure you want to quit?",));
 
         let quit_button = Button {
             id: ComponentId::QuitDialogButton(QuitDialogButtonId::Quit),
@@ -3545,7 +3545,47 @@ impl Component for HelpDialog {
 
     fn draw(&self, viewport: &mut Viewport<Self::Id>, _: isize, _: isize) {
         let title = "Help";
-        let body = "You can click the menus with the mouse to view keyboard shortcuts.";
+        let body = Text::from(vec![
+            Line::from("You can click the menus with a mouse, or use these keyboard shortcuts:"),
+            Line::from(""),
+            Line::from(vec![
+                Span::raw("    "),
+                Span::styled("General", Style::new().bold().underlined()),
+                Span::raw("                             "),
+                Span::styled("Navigation", Style::new().bold().underlined()),
+            ]),
+            Line::from(
+                "    Quit/Cancel             q           Next/Prev               j/k or ↓/↑",
+            ),
+            Line::from("    Confirm changes         c           Next/Prev of same type  PgDn/PgUp"),
+            Line::from("    Force quit              ^c          Move out & fold         h or ←"),
+            Line::from(
+                "                                        Move out & don't fold   H or Shift-←    ",
+            ),
+            Line::from(vec![
+                Span::raw("    "),
+                Span::styled("View controls", Style::new().bold().underlined()),
+                Span::raw("                       Move in & unfold        l or →"),
+            ]),
+            Line::from("    Expand/Collapse         f"),
+            Line::from(vec![
+                Span::raw("    Expand/Collapse all     F           "),
+                Span::styled("Scrolling", Style::new().bold().underlined()),
+            ]),
+            Line::from("    Edit commit message     e           Scroll up/down          ^y/^e"),
+            Line::from("                                                             or ^↑/^↓"),
+            Line::from(vec![
+                Span::raw("    "),
+                Span::styled("Selection", Style::new().bold().underlined()),
+                Span::raw("                           Page up/down            ^b/^f"),
+            ]),
+            Line::from(
+                "    Toggle current          Space                            or ^PgUp/^PgDn",
+            ),
+            Line::from("    Toggle and advance      Enter       Previous/Next page      ^u/^d"),
+            Line::from("    Invert all              a"),
+            Line::from("    Invert all uniformly    A"),
+        ]);
 
         let quit_button = Button {
             id: ComponentId::HelpDialogQuitButton,
@@ -3558,7 +3598,7 @@ impl Component for HelpDialog {
         let dialog = Dialog {
             id: self.id(),
             title: Cow::Borrowed(title),
-            body: Cow::Borrowed(body),
+            body: Cow::Borrowed(&body),
             buttons: &buttons,
         };
         viewport.draw_component(0, 0, &dialog);
@@ -3608,7 +3648,7 @@ impl<Id: Clone + Debug + Eq + Hash> Component for Button<'_, Id> {
 struct Dialog<'a, Id> {
     id: Id,
     title: Cow<'a, str>,
-    body: Cow<'a, str>,
+    body: Cow<'a, Text<'a>>,
     buttons: &'a [Button<'a, Id>],
 }
 
@@ -3628,7 +3668,7 @@ impl<Id: Clone + Debug + Eq + Hash> Component for Dialog<'_, Id> {
         } = self;
         let rect = {
             let border_size = 2;
-            let body_lines = body.lines().count();
+            let body_lines = body.lines.len();
             let rect = centered_rect(
                 viewport.rect(),
                 RectSize {
@@ -3641,7 +3681,7 @@ impl<Id: Clone + Debug + Eq + Hash> Component for Dialog<'_, Id> {
                 20,
             );
 
-            let paragraph = Paragraph::new(body.as_ref()).block(
+            let paragraph = Paragraph::new((*body.as_ref()).clone()).block(
                 Block::default()
                     .title(title.as_ref())
                     .borders(Borders::all()),

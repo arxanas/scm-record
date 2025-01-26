@@ -3,7 +3,7 @@
 
 use std::path::Path;
 
-use scm_record::{helpers::CrosstermInput, RecordError, RecordState, Recorder, SelectedContents};
+use scm_record::{helpers::CrosstermInput, FileState, RecordError, RecordState, Recorder, SelectedContents};
 
 #[cfg(feature = "serde")]
 fn load_state(path: impl AsRef<Path>) -> RecordState<'static> {
@@ -37,17 +37,21 @@ fn main() {
                 print!(
                     "{}",
                     match &selected {
-                        SelectedContents::Absent => "<absent>\n".to_string(),
-                        SelectedContents::Unchanged => "<unchanged\n>".to_string(),
-                        SelectedContents::Binary {
-                            old_description: _,
-                            new_description: None,
-                        } => "<binary>\n".to_string(),
-                        SelectedContents::Binary {
-                            old_description: _,
-                            new_description: Some(description),
-                        } => format!("<binary description={description}>\n"),
-                        SelectedContents::Present { contents } => contents.clone(),
+                        FileState::Absent => "<absent>\n".to_string(),
+                        FileState::Present { contents, mode_transition: _ } => {
+                            match contents {
+                                SelectedContents::Unchanged => "<unchanged\n>".to_string(),
+                                SelectedContents::Binary {
+                                    old_description: _,
+                                    new_description: None,
+                                } => "<binary>\n".to_string(),
+                                SelectedContents::Binary {
+                                    old_description: _,
+                                    new_description: Some(description),
+                                } => format!("<binary description={description}>\n"),
+                                SelectedContents::Text { contents } => contents.clone(),
+                            }
+                        }
                     }
                 );
             }

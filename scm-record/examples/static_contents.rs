@@ -4,17 +4,13 @@
 use std::borrow::Cow;
 use std::path::Path;
 
-use scm_record::{
-    helpers::CrosstermInput, ChangeType, File, RecordError, RecordState, Recorder, Section,
-    SectionChangedLine, SelectedContents,
-};
+use scm_record::{helpers::CrosstermInput, ChangeType, File, FileState, RecordError, RecordState, Recorder, Section, SectionChangedLine, SelectedContents};
 
 fn main() {
     let files = vec![
         File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo/bar")),
-            file_mode: None,
             sections: vec![
                 Section::Unchanged {
                     lines: std::iter::repeat(Cow::Borrowed("this is some text\n"))
@@ -54,7 +50,6 @@ fn main() {
         File {
             old_path: None,
             path: Cow::Borrowed(Path::new("baz")),
-            file_mode: None,
             sections: vec![
                 Section::Unchanged {
                     lines: vec![
@@ -113,19 +108,23 @@ fn main() {
                 print!(
                     "{}",
                     match &selected {
-                        SelectedContents::Absent => "<absent>\n".to_string(),
-                        SelectedContents::Binary {
-                            old_description: _,
-                            new_description: None,
-                        } => "<binary>\n".to_string(),
-                        SelectedContents::Binary {
-                            old_description: _,
-                            new_description: Some(description),
-                        } => format!("<binary description={description}>\n"),
-                        SelectedContents::Present { contents } => {
-                            contents.clone()
+                        FileState::Absent => "<absent>\n".to_string(),
+                        FileState::Present { contents, mode_transition: _ } => {
+                            match contents {
+                                SelectedContents::Binary {
+                                    old_description: _,
+                                    new_description: None,
+                                } => "<binary>\n".to_string(),
+                                SelectedContents::Binary {
+                                    old_description: _,
+                                    new_description: Some(description),
+                                } => format!("<binary description={description}>\n"),
+                                SelectedContents::Text { contents } => {
+                                    contents.clone()
+                                }
+                                SelectedContents::Unchanged => "<unchanged\n>".to_string(),
+                            }
                         }
-                        SelectedContents::Unchanged => "<unchanged\n>".to_string(),
                     }
                 );
             }

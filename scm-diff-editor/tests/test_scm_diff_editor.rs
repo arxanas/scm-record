@@ -38,53 +38,52 @@ qux2
             dry_run: false,
         },
     )?;
-    assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "foo\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "qux1\n",
-                            },
-                        ],
-                    },
-                    Unchanged {
-                        lines: [
-                            "common1\n",
-                            "common2\n",
-                        ],
-                    },
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "bar\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "qux2\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    assert_debug_snapshot!(files, @r#"
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            sections: [
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "foo\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "qux1\n",
+                        },
+                    ],
+                },
+                Unchanged {
+                    lines: [
+                        "common1\n",
+                        "common2\n",
+                    ],
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "bar\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "qux2\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
 
     select_all(&mut files);
     apply_changes(
@@ -220,28 +219,27 @@ fn test_diff_absent_left() -> Result<()> {
             dry_run: false,
         },
     )?;
-    assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "right\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    assert_debug_snapshot!(files, @r#"
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            sections: [
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "right\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
 
     select_all(&mut files);
     apply_changes(
@@ -296,28 +294,27 @@ fn test_diff_absent_right() -> Result<()> {
             dry_run: false,
         },
     )?;
-    assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "left\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    assert_debug_snapshot!(files, @r#"
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            sections: [
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "left\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
 
     select_all(&mut files);
     apply_changes(
@@ -554,49 +551,48 @@ Hello world 4
             output: Some("output".into()),
         },
     )?;
-    insta::assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "base",
-                ),
-                path: "output",
-                file_mode: None,
-                sections: [
-                    Unchanged {
-                        lines: [
-                            "Hello world 1\n",
-                            "Hello world 2\n",
-                        ],
-                    },
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world L\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "Hello world 3\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world R\n",
-                            },
-                        ],
-                    },
-                    Unchanged {
-                        lines: [
-                            "Hello world 4\n",
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    insta::assert_debug_snapshot!(files, @r#"
+    [
+        File {
+            old_path: Some(
+                "base",
+            ),
+            path: "output",
+            sections: [
+                Unchanged {
+                    lines: [
+                        "Hello world 1\n",
+                        "Hello world 2\n",
+                    ],
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world L\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "Hello world 3\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world R\n",
+                        },
+                    ],
+                },
+                Unchanged {
+                    lines: [
+                        "Hello world 4\n",
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
 
     select_all(&mut files);
     apply_changes(
@@ -687,33 +683,32 @@ Hello world 2
             output: None,
         },
     )?;
-    insta::assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world 1\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world 2\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    insta::assert_debug_snapshot!(files, @r#"
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            sections: [
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world 1\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world 2\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "#);
 
     // Select no changes from new file.
     apply_changes(

@@ -24,7 +24,7 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 use scm_record::helpers::CrosstermInput;
-use scm_record::{File, FileMode, RecordError, RecordState, Recorder, SelectedContents};
+use scm_record::{File, FileMode, FileState, RecordError, RecordState, Recorder, SelectedContents};
 
 /// Render a partial commit selector for use as a difftool or mergetool.
 ///
@@ -440,24 +440,28 @@ fn print_dry_run(write_root: &Path, state: RecordState) {
         let file_path = write_root.join(file.path.clone());
         let (selected_contents, _unselected_contents) = file.get_selected_contents();
         match selected_contents {
-            SelectedContents::Absent => {
+            FileState::Absent => {
                 println!("Would delete file: {}", file_path.display())
             }
-            SelectedContents::Unchanged => {
-                println!("Would leave file unchanged: {}", file_path.display())
-            }
-            SelectedContents::Binary {
-                old_description,
-                new_description,
-            } => {
-                println!("Would update binary file: {}", file_path.display());
-                println!("  Old: {:?}", old_description);
-                println!("  New: {:?}", new_description);
-            }
-            SelectedContents::Present { contents } => {
-                println!("Would update text file: {}", file_path.display());
-                for line in contents.lines() {
-                    println!("  {line}");
+            FileState::Present { contents, mode_transition: _ } => {
+                match contents {
+                    SelectedContents::Unchanged => {
+                        println!("Would leave file unchanged: {}", file_path.display())
+                    }
+                    SelectedContents::Binary {
+                        old_description,
+                        new_description,
+                    } => {
+                        println!("Would update binary file: {}", file_path.display());
+                        println!("  Old: {:?}", old_description);
+                        println!("  New: {:?}", new_description);
+                    }
+                    SelectedContents::Text { contents } => {
+                        println!("Would update text file: {}", file_path.display());
+                        for line in contents.lines() {
+                            println!("  {line}");
+                        }
+                    }
                 }
             }
         }
@@ -483,28 +487,32 @@ pub fn apply_changes(
         let file_path = write_root.join(file.path.clone());
         let (selected_contents, _unselected_contents) = file.get_selected_contents();
         match selected_contents {
-            SelectedContents::Absent => {
+            FileState::Absent => {
                 filesystem.remove_file(&file_path)?;
-            }
-            SelectedContents::Unchanged => {
-                // Do nothing.
-            }
-            SelectedContents::Binary {
-                old_description: _,
-                new_description: _,
-            } => {
-                let new_path = file_path;
-                let old_path = match &file.old_path {
-                    Some(old_path) => old_path.clone(),
-                    None => Cow::Borrowed(new_path.as_path()),
-                };
-                filesystem.copy_file(&old_path, &new_path)?;
-            }
-            SelectedContents::Present { contents } => {
-                if let Some(parent_dir) = file_path.parent() {
-                    filesystem.create_dir_all(parent_dir)?;
+            },
+            FileState::Present { contents, mode_transition: _ } => {
+                match contents {
+                    SelectedContents::Unchanged => {
+                        // Do nothing.
+                    }
+                    SelectedContents::Binary {
+                        old_description: _,
+                        new_description: _,
+                    } => {
+                        let new_path = file_path;
+                        let old_path = match &file.old_path {
+                            Some(old_path) => old_path.clone(),
+                            None => Cow::Borrowed(new_path.as_path()),
+                        };
+                        filesystem.copy_file(&old_path, &new_path)?;
+                    }
+                    SelectedContents::Text { contents } => {
+                        if let Some(parent_dir) = file_path.parent() {
+                            filesystem.create_dir_all(parent_dir)?;
+                        }
+                        filesystem.write_file(&file_path, &contents)?;
+                    }
                 }
-                filesystem.write_file(&file_path, &contents)?;
             }
         }
     }
@@ -680,14 +688,13 @@ qux2
                 dry_run: false,
             },
         )?;
-        assert_debug_snapshot!(files, @r###"
+        assert_debug_snapshot!(files, @r#"
         [
             File {
                 old_path: Some(
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
                 sections: [
                     Changed {
                         lines: [
@@ -726,7 +733,7 @@ qux2
                 ],
             },
         ]
-        "###);
+        "#);
 
         select_all(&mut files);
         apply_changes(
@@ -862,14 +869,13 @@ qux2
                 dry_run: false,
             },
         )?;
-        assert_debug_snapshot!(files, @r###"
+        assert_debug_snapshot!(files, @r#"
         [
             File {
                 old_path: Some(
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
                 sections: [
                     Changed {
                         lines: [
@@ -883,7 +889,7 @@ qux2
                 ],
             },
         ]
-        "###);
+        "#);
 
         select_all(&mut files);
         apply_changes(
@@ -938,14 +944,13 @@ qux2
                 dry_run: false,
             },
         )?;
-        assert_debug_snapshot!(files, @r###"
+        assert_debug_snapshot!(files, @r#"
         [
             File {
                 old_path: Some(
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
                 sections: [
                     Changed {
                         lines: [
@@ -959,7 +964,7 @@ qux2
                 ],
             },
         ]
-        "###);
+        "#);
 
         select_all(&mut files);
         apply_changes(
@@ -1196,14 +1201,13 @@ Hello world 4
                 output: Some("output".into()),
             },
         )?;
-        insta::assert_debug_snapshot!(files, @r###"
+        insta::assert_debug_snapshot!(files, @r#"
         [
             File {
                 old_path: Some(
                     "base",
                 ),
                 path: "output",
-                file_mode: None,
                 sections: [
                     Unchanged {
                         lines: [
@@ -1238,7 +1242,7 @@ Hello world 4
                 ],
             },
         ]
-        "###);
+        "#);
 
         select_all(&mut files);
         apply_changes(
@@ -1329,14 +1333,13 @@ Hello world 2
                 output: None,
             },
         )?;
-        insta::assert_debug_snapshot!(files, @r###"
+        insta::assert_debug_snapshot!(files, @r#"
         [
             File {
                 old_path: Some(
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
                 sections: [
                     Changed {
                         lines: [
@@ -1355,7 +1358,7 @@ Hello world 2
                 ],
             },
         ]
-        "###);
+        "#);
 
         // Select no changes from new file.
         apply_changes(

@@ -143,7 +143,6 @@ pub fn create_file(
             None
         },
         path: Cow::Owned(right_display_path),
-        file_mode: None, // TODO
         sections,
     })
 }
@@ -211,7 +210,6 @@ pub fn create_merge_file(
     Ok(File {
         old_path: Some(Cow::Owned(base_path)),
         path: Cow::Owned(output_path),
-        file_mode: None,
         sections,
     })
 }

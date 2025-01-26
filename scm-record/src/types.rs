@@ -179,26 +179,29 @@ pub struct File<'a> {
     /// The path to the current version of the file, for display purposes.
     pub path: Cow<'a, Path>,
 
-    /// The Unix file mode of the file (before any changes), if available. This
-    /// may be rendered by the UI.
-    ///
-    /// This value is not directly modified by the UI; instead, construct a
-    /// [`Section::FileMode`] and use the [`File::get_file_mode`] function
-    /// to read a user-provided updated to the file mode function to read a
-    /// user-provided updated to the file mode.
-    pub file_mode: Option<FileMode>,
-
     /// The set of [`Section`]s inside the file.
     pub sections: Vec<Section<'a>>,
+}
+
+#[derive(Debug)]
+pub enum FileState<'a> {
+    /// The file didn't exist or was deleted.
+    Absent,
+
+    /// The file existed with some potential changes to its contents or mode.
+    Present {
+        /// A potential change to the file's mode.
+        mode_transition: Option<FileModeTransition>,
+
+        /// The file's contents.
+        contents: SelectedContents<'a>,
+    }
 }
 
 /// The contents of a file selected as part of the record operation.
 #[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum SelectedContents<'a> {
-    /// The file didn't exist or was deleted.
-    Absent,
-
-    /// The file contents have not changed.
+    /// The file's contents have not changed.
     Unchanged,
 
     /// The file contains binary contents.
@@ -210,75 +213,107 @@ pub enum SelectedContents<'a> {
     },
 
     /// The file contained the following text contents.
-    Present {
+    Text {
         /// The contents of the file.
         contents: String,
     },
 }
 
-impl SelectedContents<'_> {
+#[derive(Clone, Debug)]
+pub struct FileModeTransition {
+    pub before: FileMode,
+    pub after: FileMode,
+}
+
+impl FileModeTransition {
+    pub fn is_creation(&self) -> bool {
+        self.before == FileMode::absent()
+    }
+
+    pub fn is_deletion(&self) -> bool {
+        self.after == FileMode::absent()
+    }
+}
+
+impl FileState<'_> {
     fn push_str(&mut self, s: &str) {
         match self {
-            SelectedContents::Absent | SelectedContents::Unchanged => {
-                *self = SelectedContents::Present {
-                    contents: s.to_owned(),
+            Self::Absent => {
+                *self = FileState::Present {
+                    contents: SelectedContents::Text {
+                        contents: s.to_owned(),
+                    },
+                    mode_transition: None,
                 };
             }
-            SelectedContents::Binary {
-                old_description: _,
-                new_description: _,
+            Self::Present {
+                contents,
+                ..
             } => {
-                // Do nothing.
+                match contents {
+                    SelectedContents::Unchanged => {
+                        *contents = SelectedContents::Text {
+                            contents: s.to_owned()
+                        }
+                    }
+                    SelectedContents::Binary {
+                        old_description: _,
+                        new_description: _,
+                    } => {
+                        // Do nothing.
+                    }
+                    SelectedContents::Text { contents } => {
+                        contents.push_str(s);
+                    }
+                }
             }
-            SelectedContents::Present { contents } => {
-                contents.push_str(s);
+        }
+    }
+
+    fn set_mode_change(&mut self, before: FileMode, after: FileMode) {
+        match self {
+            Self::Absent => {
+                *self = FileState::Present {
+                    contents: SelectedContents::Unchanged,
+                    mode_transition: Some(FileModeTransition {
+                        before, after
+                    }),
+                };
+            }
+            Self::Present {
+                mode_transition,
+                ..
+            } => {
+                *mode_transition = Some(FileModeTransition {
+                    before, after
+                });
+            }
+        }
+    }
+
+    fn get_mode_change(&self) -> Option<FileModeTransition> {
+        match self {
+            Self::Absent => None,
+            Self::Present {
+                mode_transition,
+                ..
+            } => {
+                mode_transition.clone()
             }
         }
     }
 }
 
 impl File<'_> {
-    /// Get the new Unix file mode. If the user selected a
-    /// [`Section::FileMode`], then returns that file mode. Otherwise, returns
-    /// the `file_mode` value that this [`File`] was constructed with.
-    pub fn get_file_mode(&self) -> Option<FileMode> {
-        let Self {
-            old_path: _,
-            path: _,
-            file_mode,
-            sections,
-        } = self;
-        sections
-            .iter()
-            .find_map(|section| match section {
-                Section::Unchanged { .. }
-                | Section::Changed { .. }
-                | Section::FileMode {
-                    is_checked: false,
-                    before: _,
-                    after: _,
-                }
-                | Section::Binary { .. } => None,
-
-                Section::FileMode {
-                    is_checked: true,
-                    before: _,
-                    after,
-                } => Some(*after),
-            })
-            .or(*file_mode)
-    }
-
     /// Calculate the `(selected, unselected)` contents of the file. For
     /// example, the first value would be suitable for staging or committing,
     /// and the second value would be suitable for potentially recording again.
-    pub fn get_selected_contents(&self) -> (SelectedContents, SelectedContents) {
-        let mut acc_selected = SelectedContents::Absent;
-        let mut acc_unselected = SelectedContents::Absent;
+    pub fn get_selected_contents(&self) -> (FileState, FileState) {
+        let mut acc_selected = FileState::Absent;
+        let mut acc_unselected = FileState::Absent;
         let Self {
             old_path: _,
             path: _,
-            file_mode: _,
             sections,
         } = self;
         for section in sections {
@@ -313,10 +348,10 @@ impl File<'_> {
                     before,
                     after,
                 } => {
-                    if *is_checked && after == &FileMode::absent() {
-                        acc_selected = SelectedContents::Absent;
-                    } else if !is_checked && before == &FileMode::absent() {
-                        acc_unselected = SelectedContents::Absent;
+                    if *is_checked {
+                        acc_selected.set_mode_change(*before, *after);
+                    } else {
+                        acc_unselected.set_mode_change(*before, *after);
                     }
                 }
 
@@ -330,11 +365,11 @@ impl File<'_> {
                         new_description: new_description.clone(),
                     };
                     if *is_checked {
-                        acc_selected = selected_contents;
-                        acc_unselected = SelectedContents::Unchanged;
+                        acc_selected = FileState::Present { contents: selected_contents, mode_transition: acc_selected.get_mode_change(), };
+                        acc_unselected = FileState::Present { contents: SelectedContents::Unchanged, mode_transition: acc_unselected.get_mode_change(), };
                     } else {
-                        acc_selected = SelectedContents::Unchanged;
-                        acc_unselected = selected_contents;
+                        acc_selected = FileState::Present { contents: SelectedContents::Unchanged, mode_transition: acc_selected.get_mode_change(), };
+                        acc_unselected = FileState::Present { contents: selected_contents, mode_transition: acc_unselected.get_mode_change(), };
                     }
                 }
             }
@@ -348,7 +383,6 @@ impl File<'_> {
         let Self {
             old_path: _,
             path: _,
-            file_mode: _,
             sections,
         } = self;
         let mut seen_value = None;
@@ -395,7 +429,6 @@ impl File<'_> {
         let Self {
             old_path: _,
             path: _,
-            file_mode: _,
             sections,
         } = self;
         for section in sections {
@@ -408,7 +441,6 @@ impl File<'_> {
         let Self {
             old_path: _,
             path: _,
-            file_mode: _,
             sections,
         } = self;
         for section in sections {

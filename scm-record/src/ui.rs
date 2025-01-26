@@ -3565,7 +3565,6 @@ mod tests {
             files: vec![File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo/bar")),
-                file_mode: None,
                 sections: Default::default(),
             }],
         };

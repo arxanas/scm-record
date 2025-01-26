@@ -3,7 +3,7 @@ use std::{borrow::Cow, path::Path};
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 
 use scm_record::{
-    helpers::TestingInput, ChangeType, Event, File, RecordState, Recorder, Section,
+    helpers::TestingInput, ChangeType, Event, File, FileMode, RecordState, Recorder, Section,
     SectionChangedLine,
 };
 
@@ -25,7 +25,7 @@ fn bench_record(c: &mut Criterion) {
             files: vec![File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![Section::Changed {
                     lines: [vec![before_line; 1000], vec![after_line; 1000]].concat(),
                 }],

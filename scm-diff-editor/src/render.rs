@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::path::PathBuf;
 
 use scm_record::helpers::make_binary_description;
-use scm_record::{ChangeType, File, FileMode, Section, SectionChangedLine};
+use scm_record::{ChangeType, File, Section, SectionChangedLine};
 use tracing::warn;
 
 use super::{Error, FileContents, FileInfo, Filesystem};
@@ -38,14 +38,10 @@ pub fn create_file(
     } = filesystem.read_file_info(&right_path)?;
     let mut sections = Vec::new();
 
-    if left_file_mode != right_file_mode
-        && left_file_mode != FileMode::absent()
-        && right_file_mode != FileMode::absent()
-    {
+    if left_file_mode != right_file_mode {
         sections.push(Section::FileMode {
             is_checked: false,
-            before: left_file_mode,
-            after: right_file_mode,
+            mode: right_file_mode,
         });
     }
 
@@ -143,7 +139,7 @@ pub fn create_file(
             None
         },
         path: Cow::Owned(right_display_path),
-        file_mode: None, // TODO
+        file_mode: left_file_mode,
         sections,
     })
 }
@@ -156,7 +152,7 @@ pub fn create_merge_file(
     output_path: PathBuf,
 ) -> Result<File<'static>, Error> {
     let FileInfo {
-        file_mode: _,
+        file_mode: left_file_mode,
         contents: left_contents,
     } = filesystem.read_file_info(&left_path)?;
     let FileInfo {
@@ -211,7 +207,7 @@ pub fn create_merge_file(
     Ok(File {
         old_path: Some(Cow::Owned(base_path)),
         path: Cow::Owned(output_path),
-        file_mode: None,
+        file_mode: left_file_mode,
         sections,
     })
 }

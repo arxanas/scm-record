@@ -24,7 +24,9 @@ use thiserror::Error;
 use walkdir::WalkDir;
 
 use scm_record::helpers::CrosstermInput;
-use scm_record::{File, FileMode, RecordError, RecordState, Recorder, SelectedContents};
+use scm_record::{
+    File, FileMode, RecordError, RecordState, Recorder, SelectedChanges, SelectedContents,
+};
 
 /// Render a partial commit selector for use as a difftool or mergetool.
 ///
@@ -220,7 +222,7 @@ impl Filesystem for RealFilesystem {
             Ok(metadata) => {
                 // TODO: no support for gitlinks (submodules).
                 if metadata.is_symlink() {
-                    FileMode(0o120000)
+                    FileMode::Unix(0o120000)
                 } else {
                     let permissions = metadata.permissions();
                     #[cfg(unix)]
@@ -231,13 +233,13 @@ impl Filesystem for RealFilesystem {
                     #[cfg(not(unix))]
                     let executable = false;
                     if executable {
-                        FileMode(0o100755)
+                        FileMode::Unix(0o100755)
                     } else {
-                        FileMode(0o100644)
+                        FileMode::Unix(0o100644)
                     }
                 }
             }
-            Err(err) if err.kind() == io::ErrorKind::NotFound => FileMode::absent(),
+            Err(err) if err.kind() == io::ErrorKind::NotFound => FileMode::Absent,
             Err(err) => {
                 return Err(Error::ReadFile {
                     path: path.to_owned(),
@@ -439,12 +441,39 @@ fn print_dry_run(write_root: &Path, state: RecordState) {
     for file in files {
         let file_path = write_root.join(file.path.clone());
         let (selected_contents, _unselected_contents) = file.get_selected_contents();
-        match selected_contents {
-            SelectedContents::Absent => {
-                println!("Would delete file: {}", file_path.display())
-            }
+
+        let File {
+            file_mode: old_file_mode,
+            ..
+        } = file;
+
+        let SelectedChanges {
+            contents,
+            file_mode,
+        } = selected_contents;
+
+        if file_mode == FileMode::Absent {
+            println!("Would delete file: {}", file_path.display());
+            continue;
+        }
+
+        let print_file_mode_change = old_file_mode != file_mode;
+        if print_file_mode_change {
+            println!(
+                "Would change file mode from {} to {}: {}",
+                old_file_mode,
+                file_mode,
+                file_path.display()
+            );
+        }
+
+        match contents {
             SelectedContents::Unchanged => {
-                println!("Would leave file unchanged: {}", file_path.display())
+                // Printing that the file is unchanged is incorrect (and that the contents
+                // is unchanged is just noisy) if we've already printed that the mode changed.
+                if !print_file_mode_change {
+                    println!("Would leave file unchanged: {}", file_path.display())
+                }
             }
             SelectedContents::Binary {
                 old_description,
@@ -454,7 +483,7 @@ fn print_dry_run(write_root: &Path, state: RecordState) {
                 println!("  Old: {:?}", old_description);
                 println!("  New: {:?}", new_description);
             }
-            SelectedContents::Present { contents } => {
+            SelectedContents::Text { contents } => {
                 println!("Would update text file: {}", file_path.display());
                 for line in contents.lines() {
                     println!("  {line}");
@@ -481,11 +510,18 @@ pub fn apply_changes(
     }
     for file in files {
         let file_path = write_root.join(file.path.clone());
-        let (selected_contents, _unselected_contents) = file.get_selected_contents();
-        match selected_contents {
-            SelectedContents::Absent => {
-                filesystem.remove_file(&file_path)?;
-            }
+        let (selected_changes, _unselected_changes) = file.get_selected_contents();
+
+        let SelectedChanges {
+            contents,
+            file_mode,
+        } = selected_changes;
+
+        if file_mode == FileMode::Absent {
+            filesystem.remove_file(&file_path)?;
+        }
+
+        match contents {
             SelectedContents::Unchanged => {
                 // Do nothing.
             }
@@ -500,10 +536,12 @@ pub fn apply_changes(
                 };
                 filesystem.copy_file(&old_path, &new_path)?;
             }
-            SelectedContents::Present { contents } => {
+            SelectedContents::Text { contents } => {
                 if let Some(parent_dir) = file_path.parent() {
                     filesystem.create_dir_all(parent_dir)?;
                 }
+
+                // TODO: Respect executable bit
                 filesystem.write_file(&file_path, &contents)?;
             }
         }
@@ -599,7 +637,7 @@ mod tests {
                         source: io::Error::new(io::ErrorKind::Other, "is a directory"),
                     }),
                     None => Ok(FileInfo {
-                        file_mode: FileMode::absent(),
+                        file_mode: FileMode::Absent,
                         contents: FileContents::Absent,
                     }),
                 },
@@ -634,7 +672,7 @@ mod tests {
         let contents = contents.into();
         let num_bytes = contents.len().try_into().unwrap();
         FileInfo {
-            file_mode: FileMode(0o100644),
+            file_mode: FileMode::Unix(0o100644),
             contents: FileContents::Text {
                 contents,
                 hash: "abc123".to_string(),
@@ -687,7 +725,9 @@ qux2
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Changed {
                         lines: [
@@ -742,7 +782,7 @@ qux2
         TestFilesystem {
             files: {
                 "left": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -752,7 +792,7 @@ qux2
                     },
                 },
                 "right": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -813,7 +853,7 @@ qux2
         TestFilesystem {
             files: {
                 "left": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -823,7 +863,7 @@ qux2
                     },
                 },
                 "right": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -869,8 +909,14 @@ qux2
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
+                file_mode: Absent,
                 sections: [
+                    FileMode {
+                        is_checked: false,
+                        mode: Unix(
+                            33188,
+                        ),
+                    },
                     Changed {
                         lines: [
                             SectionChangedLine {
@@ -899,7 +945,7 @@ qux2
         TestFilesystem {
             files: {
                 "right": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -945,8 +991,14 @@ qux2
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
+                    FileMode {
+                        is_checked: false,
+                        mode: Absent,
+                    },
                     Changed {
                         lines: [
                             SectionChangedLine {
@@ -975,7 +1027,7 @@ qux2
         TestFilesystem {
             files: {
                 "left": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1060,7 +1112,7 @@ qux2
         TestFilesystem {
             files: {
                 "left/foo": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1070,7 +1122,7 @@ qux2
                     },
                 },
                 "right/foo": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1124,7 +1176,7 @@ qux2
         TestFilesystem {
             files: {
                 "left/foo": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1134,7 +1186,7 @@ qux2
                     },
                 },
                 "right/foo": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1203,7 +1255,9 @@ Hello world 4
                     "base",
                 ),
                 path: "output",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Unchanged {
                         lines: [
@@ -1255,7 +1309,7 @@ Hello world 4
         TestFilesystem {
             files: {
                 "base": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1265,7 +1319,7 @@ Hello world 4
                     },
                 },
                 "left": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1275,7 +1329,7 @@ Hello world 4
                     },
                 },
                 "output": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1285,7 +1339,7 @@ Hello world 4
                     },
                 },
                 "right": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1336,8 +1390,14 @@ Hello world 2
                     "left",
                 ),
                 path: "right",
-                file_mode: None,
+                file_mode: Absent,
                 sections: [
+                    FileMode {
+                        is_checked: false,
+                        mode: Unix(
+                            33188,
+                        ),
+                    },
                     Changed {
                         lines: [
                             SectionChangedLine {
@@ -1391,7 +1451,7 @@ Hello world 2
         TestFilesystem {
             files: {
                 "right": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {
@@ -1408,7 +1468,7 @@ Hello world 2
         "###);
 
         // Select only some changes from new file.
-        match files[0].sections.get_mut(0).unwrap() {
+        match files[0].sections.get_mut(1).unwrap() {
             Section::Changed { ref mut lines } => lines[0].is_checked = false,
             _ => panic!("Expected changed section"),
         }
@@ -1425,7 +1485,7 @@ Hello world 2
         TestFilesystem {
             files: {
                 "right": FileInfo {
-                    file_mode: FileMode(
+                    file_mode: Unix(
                         33188,
                     ),
                     contents: Text {

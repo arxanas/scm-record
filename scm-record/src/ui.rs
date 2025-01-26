@@ -35,7 +35,7 @@ use crate::render::{
 };
 use crate::types::{ChangeType, Commit, RecordError, RecordState, Tristate};
 use crate::util::{IsizeExt, UsizeExt};
-use crate::{File, Section, SectionChangedLine};
+use crate::{File, FileMode, Section, SectionChangedLine};
 
 const NUM_CONTEXT_LINES: usize = 3;
 
@@ -1320,8 +1320,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         }
                         Section::FileMode {
                             is_checked: _,
-                            before: _,
-                            after: _,
+                            mode: _,
                         }
                         | Section::Binary { .. } => {
                             result.push(SelectionKey::Section(SectionKey {
@@ -1826,6 +1825,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     Tristate::False => true,
                     Tristate::Partial | Tristate::True => false,
                 };
+
                 self.visit_section(section_key, |section| {
                     section.set_checked(is_checked_new);
                 })?;
@@ -3070,11 +3070,7 @@ impl Component for SectionView<'_> {
                 }
             }
 
-            Section::FileMode {
-                is_checked,
-                before,
-                after,
-            } => {
+            Section::FileMode { is_checked, mode } => {
                 let is_focused = match selection {
                     Some(SectionSelection::SectionHeader) => true,
                     Some(SectionSelection::ChangedLine(_)) | None => false,
@@ -3095,7 +3091,14 @@ impl Component for SectionView<'_> {
                 };
                 let toggle_box_rect = viewport.draw_component(x, y, &toggle_box);
                 let x = x + toggle_box_rect.width.unwrap_isize() + 1;
-                let text = format!("File mode changed from {before} to {after}");
+
+                let text = match mode {
+                    // TODO: It would be nice to render this as 'file was created with mode x' but we don't have access
+                    // to the file's mode to see if it was absent before here.
+                    FileMode::Unix(mode) => format!("File mode set to {mode:o}"),
+                    FileMode::Absent => "File deleted".to_owned(),
+                };
+
                 viewport.draw_text(x, y, Span::styled(text, Style::default().fg(Color::Blue)));
                 if is_focused {
                     highlight_rect(
@@ -3565,7 +3568,7 @@ mod tests {
             files: vec![File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo/bar")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: Default::default(),
             }],
         };

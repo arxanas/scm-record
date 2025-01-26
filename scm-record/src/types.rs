@@ -74,37 +74,38 @@ pub enum RecordError {
     Bug(String),
 }
 
-/// The Unix file mode. The special mode `0` indicates that the file did not exist.
+/// The file mode.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-pub struct FileMode(pub usize);
+pub enum FileMode {
+    /// A Read Write Execute style Unix file mode
+    Unix(usize),
+
+    /// Indicates that the file did not exists.
+    Absent,
+}
 
 impl FileMode {
-    /// Get the file mode corresponding to an absent file. This typically
-    /// indicates that the file was created (if the "before" mode) or deleted
-    /// (if the "after" mode).
-    pub fn absent() -> Self {
-        Self(0)
-    }
+    /// The default Unix permissions for files.
+    pub const FILE_DEFAULT: FileMode = FileMode::Unix(0o100644);
 }
 
 impl Display for FileMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let Self(mode) = self;
-        write!(f, "{mode:o}")
+        match self {
+            FileMode::Unix(mode) => {
+                write!(f, "{mode:o}")
+            }
+            FileMode::Absent => {
+                write!(f, "<absent>")
+            }
+        }
     }
 }
 
 impl From<usize> for FileMode {
     fn from(value: usize) -> Self {
-        Self(value)
-    }
-}
-
-impl From<FileMode> for usize {
-    fn from(value: FileMode) -> Self {
-        let FileMode(value) = value;
-        value
+        Self::Unix(value)
     }
 }
 
@@ -112,16 +113,7 @@ impl TryFrom<u32> for FileMode {
     type Error = TryFromIntError;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(Self(value.try_into()?))
-    }
-}
-
-impl TryFrom<FileMode> for u32 {
-    type Error = TryFromIntError;
-
-    fn try_from(value: FileMode) -> Result<Self, Self::Error> {
-        let FileMode(value) = value;
-        value.try_into()
+        Ok(Self::Unix(value.try_into()?))
     }
 }
 
@@ -129,16 +121,7 @@ impl TryFrom<i32> for FileMode {
     type Error = TryFromIntError;
 
     fn try_from(value: i32) -> Result<Self, Self::Error> {
-        Ok(Self(value.try_into()?))
-    }
-}
-
-impl TryFrom<FileMode> for i32 {
-    type Error = TryFromIntError;
-
-    fn try_from(value: FileMode) -> Result<Self, Self::Error> {
-        let FileMode(value) = value;
-        value.try_into()
+        Ok(Self::Unix(value.try_into()?))
     }
 }
 
@@ -183,21 +166,27 @@ pub struct File<'a> {
     /// may be rendered by the UI.
     ///
     /// This value is not directly modified by the UI; instead, construct a
-    /// [`Section::FileMode`] and use the [`File::get_file_mode`] function
-    /// to read a user-provided updated to the file mode function to read a
-    /// user-provided updated to the file mode.
-    pub file_mode: Option<FileMode>,
+    /// [`Section::FileMode`] and look for a user-provided update to the file
+    /// mode in the changes returned from [`File::get_selected_contents()`].
+    pub file_mode: FileMode,
 
     /// The set of [`Section`]s inside the file.
     pub sections: Vec<Section<'a>>,
 }
 
+/// The changes for a particular file selected as part of the record operation.
+#[derive(Debug)]
+pub struct SelectedChanges<'a> {
+    /// The file's mode.
+    pub file_mode: FileMode,
+
+    /// The file's contents.
+    pub contents: SelectedContents<'a>,
+}
+
 /// The contents of a file selected as part of the record operation.
 #[derive(Clone, Debug, Hash, Eq, PartialEq, PartialOrd, Ord)]
 pub enum SelectedContents<'a> {
-    /// The file didn't exist or was deleted.
-    Absent,
-
     /// The file contents have not changed.
     Unchanged,
 
@@ -210,7 +199,7 @@ pub enum SelectedContents<'a> {
     },
 
     /// The file contained the following text contents.
-    Present {
+    Text {
         /// The contents of the file.
         contents: String,
     },
@@ -219,10 +208,10 @@ pub enum SelectedContents<'a> {
 impl SelectedContents<'_> {
     fn push_str(&mut self, s: &str) {
         match self {
-            SelectedContents::Absent | SelectedContents::Unchanged => {
-                *self = SelectedContents::Present {
+            SelectedContents::Unchanged => {
+                *self = SelectedContents::Text {
                     contents: s.to_owned(),
-                };
+                }
             }
             SelectedContents::Binary {
                 old_description: _,
@@ -230,7 +219,7 @@ impl SelectedContents<'_> {
             } => {
                 // Do nothing.
             }
-            SelectedContents::Present { contents } => {
+            SelectedContents::Text { contents } => {
                 contents.push_str(s);
             }
         }
@@ -238,49 +227,40 @@ impl SelectedContents<'_> {
 }
 
 impl File<'_> {
-    /// Get the new Unix file mode. If the user selected a
-    /// [`Section::FileMode`], then returns that file mode. Otherwise, returns
-    /// the `file_mode` value that this [`File`] was constructed with.
-    pub fn get_file_mode(&self) -> Option<FileMode> {
+    /// Calculate the `(selected, unselected)` contents of the file. For
+    /// example, the first value would be suitable for staging or committing,
+    /// and the second value would be suitable for potentially recording again.
+    pub fn get_selected_contents(&self) -> (SelectedChanges, SelectedChanges) {
+        let mut acc_selected = SelectedContents::Unchanged;
+        let mut acc_unselected = SelectedContents::Unchanged;
+
         let Self {
             old_path: _,
             path: _,
             file_mode,
             sections,
         } = self;
-        sections
-            .iter()
-            .find_map(|section| match section {
-                Section::Unchanged { .. }
-                | Section::Changed { .. }
-                | Section::FileMode {
-                    is_checked: false,
-                    before: _,
-                    after: _,
-                }
-                | Section::Binary { .. } => None,
 
-                Section::FileMode {
-                    is_checked: true,
-                    before: _,
-                    after,
-                } => Some(*after),
-            })
-            .or(*file_mode)
-    }
+        let file_mode_section = sections.iter().find_map(|section| match section {
+            Section::Unchanged { .. } | Section::Changed { .. } | Section::Binary { .. } => None,
 
-    /// Calculate the `(selected, unselected)` contents of the file. For
-    /// example, the first value would be suitable for staging or committing,
-    /// and the second value would be suitable for potentially recording again.
-    pub fn get_selected_contents(&self) -> (SelectedContents, SelectedContents) {
-        let mut acc_selected = SelectedContents::Absent;
-        let mut acc_unselected = SelectedContents::Absent;
-        let Self {
-            old_path: _,
-            path: _,
-            file_mode: _,
-            sections,
-        } = self;
+            Section::FileMode { is_checked, mode } => Some((mode, is_checked)),
+        });
+
+        // The file mode for the selected changes is the selected file mode, if one was selected,
+        // or the original mode of the file, if not.
+        let selected_file_mode = file_mode_section
+            .filter(|(_, is_checked)| **is_checked)
+            .map(|(change, _)| *change)
+            .unwrap_or(*file_mode);
+
+        // The file mode for the unselected changes is the unselected file mode, if one was provided,
+        // or the original mode of the file, if not
+        let unselected_file_mode = file_mode_section
+            .filter(|(_, is_checked)| !**is_checked)
+            .map(|(change, _)| *change)
+            .unwrap_or(*file_mode);
+
         for section in sections {
             match section {
                 Section::Unchanged { lines } => {
@@ -303,21 +283,21 @@ impl File<'_> {
                             }
                             (ChangeType::Added, false) | (ChangeType::Removed, true) => {
                                 acc_unselected.push_str(line);
+
+                                // Ensure that if the file existed before and still does, that
+                                // we never report Unchanged for the selected contents in the case
+                                // that all the lines are removed (i.e. we empty the file without
+                                // deleting it)
+                                if selected_file_mode != FileMode::Absent {
+                                    acc_selected.push_str("");
+                                }
                             }
                         }
                     }
                 }
 
-                Section::FileMode {
-                    is_checked,
-                    before,
-                    after,
-                } => {
-                    if *is_checked && after == &FileMode::absent() {
-                        acc_selected = SelectedContents::Absent;
-                    } else if !is_checked && before == &FileMode::absent() {
-                        acc_unselected = SelectedContents::Absent;
-                    }
+                Section::FileMode { .. } => {
+                    // Do nothing - this is handled outside of the loop
                 }
 
                 Section::Binary {
@@ -339,7 +319,33 @@ impl File<'_> {
                 }
             }
         }
-        (acc_selected, acc_unselected)
+
+        // If an empty file was added, we won't have seen any lines in order to ensure the selected contents is "", so handle it here for the
+        // selected and un-selected cases
+        if *file_mode == FileMode::Absent
+            && selected_file_mode != FileMode::Absent
+            && acc_selected == SelectedContents::Unchanged
+        {
+            acc_selected.push_str("");
+        }
+
+        if *file_mode == FileMode::Absent
+            && unselected_file_mode != FileMode::Absent
+            && acc_unselected == SelectedContents::Unchanged
+        {
+            acc_unselected.push_str("");
+        }
+
+        (
+            SelectedChanges {
+                contents: acc_selected,
+                file_mode: selected_file_mode,
+            },
+            SelectedChanges {
+                contents: acc_unselected,
+                file_mode: unselected_file_mode,
+            },
+        )
     }
 
     /// Get the tristate value of the file. If there are no sections in this
@@ -367,8 +373,7 @@ impl File<'_> {
                 }
                 Section::FileMode {
                     is_checked,
-                    before: _,
-                    after: _,
+                    mode: _,
                 }
                 | Section::Binary {
                     is_checked,
@@ -448,11 +453,8 @@ pub enum Section<'a> {
         /// the UI.
         is_checked: bool,
 
-        /// The old file mode.
-        before: FileMode,
-
-        /// The new file mode.
-        after: FileMode,
+        /// The mode of the file after these changes.
+        mode: FileMode,
     },
 
     /// This file contains binary contents.
@@ -497,8 +499,7 @@ impl Section<'_> {
             }
             Section::FileMode {
                 is_checked,
-                before: _,
-                after: _,
+                mode: _,
             }
             | Section::Binary {
                 is_checked,
@@ -528,7 +529,10 @@ impl Section<'_> {
                     line.is_checked = checked;
                 }
             }
-            Section::FileMode { is_checked, .. } => {
+            Section::FileMode {
+                is_checked,
+                mode: _,
+            } => {
                 *is_checked = checked;
             }
             Section::Binary { is_checked, .. } => {

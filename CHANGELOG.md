@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- next-header -->
 ## [Unreleased] - ReleaseDate
 
+### Changed
+
+- BREAKING (#93): File mode changes (including file creation and file deletion) should now always be represented as `Section::FileMode`.
+
 ## [0.5.0] - 2025-01-10
 
 ### Changed

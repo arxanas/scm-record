@@ -18,6 +18,6 @@ pub mod consts;
 pub mod helpers;
 pub use types::{
     ChangeType, Commit, File, FileMode, RecordError, RecordState, Section, SectionChangedLine,
-    SelectedContents,
+    SelectedChanges, SelectedContents,
 };
 pub use ui::{Event, RecordInput, Recorder, TerminalKind, TestingScreenshot};

@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "foo/bar",
-      "file_mode": null,
+      "file_mode": { "Unix": 33188 },
       "sections": [
         {
           "Unchanged": {
@@ -67,7 +67,7 @@
     },
     {
       "path": "baz",
-      "file_mode": null,
+      "file_mode": { "Unix": 33188 },
       "sections": [
         {
           "Unchanged": {

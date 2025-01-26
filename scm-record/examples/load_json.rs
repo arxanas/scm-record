@@ -3,7 +3,10 @@
 
 use std::path::Path;
 
-use scm_record::{helpers::CrosstermInput, RecordError, RecordState, Recorder, SelectedContents};
+use scm_record::{
+    helpers::CrosstermInput, FileMode, RecordError, RecordState, Recorder, SelectedChanges,
+    SelectedContents,
+};
 
 #[cfg(feature = "serde")]
 fn load_state(path: impl AsRef<Path>) -> RecordState<'static> {
@@ -34,22 +37,31 @@ fn main() {
             for file in files {
                 println!("--- Path {:?} final lines: ---", file.path);
                 let (selected, _unselected) = file.get_selected_contents();
-                print!(
-                    "{}",
-                    match &selected {
-                        SelectedContents::Absent => "<absent>\n".to_string(),
-                        SelectedContents::Unchanged => "<unchanged\n>".to_string(),
-                        SelectedContents::Binary {
-                            old_description: _,
-                            new_description: None,
-                        } => "<binary>\n".to_string(),
-                        SelectedContents::Binary {
-                            old_description: _,
-                            new_description: Some(description),
-                        } => format!("<binary description={description}>\n"),
-                        SelectedContents::Present { contents } => contents.clone(),
-                    }
-                );
+
+                let SelectedChanges {
+                    contents,
+                    file_mode,
+                } = selected;
+
+                if file_mode == FileMode::Absent {
+                    println!("<absent>");
+                } else {
+                    print!(
+                        "{}",
+                        match contents {
+                            SelectedContents::Unchanged => "<unchanged\n>".to_string(),
+                            SelectedContents::Binary {
+                                old_description: _,
+                                new_description: None,
+                            } => "<binary>\n".to_string(),
+                            SelectedContents::Binary {
+                                old_description: _,
+                                new_description: Some(description),
+                            } => format!("<binary description={description}>\n"),
+                            SelectedContents::Text { contents } => contents.clone(),
+                        }
+                    );
+                }
             }
         }
         Err(RecordError::Cancelled) => println!("Cancelled!\n"),

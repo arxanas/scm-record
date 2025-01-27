@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - BREAKING (#93): File mode changes (including file creation and file deletion) should now always be represented as `Section::FileMode`.
+- (#95) Some selections/deselections are now performed automatically to prevent impossible combinations (like trying to delete a file but leave lines in it)
 
 ## [0.5.0] - 2025-01-10
 

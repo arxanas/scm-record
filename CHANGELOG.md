@@ -6,18 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- next-header -->
+
 ## [Unreleased] - ReleaseDate
 
 ## [0.8.0] - 2025-03-15
-
-## [0.7.0] - 2025-03-15
-
-## [0.6.0] - 2025-03-15
 
 ### Changed
 
 - BREAKING (#93): File mode changes (including file creation and file deletion) should now always be represented as `Section::FileMode`.
 - (#95) Some selections/deselections are now performed automatically to prevent impossible combinations (like trying to delete a file but leave lines in it)
+
+## [0.7.0] - 2025-03-15
+
+(Erroneously skipped; see https://github.com/crate-ci/cargo-release/issues/872)
+
+## [0.6.0] - 2025-03-15
+
+(Erroneously skipped; see https://github.com/crate-ci/cargo-release/issues/872)
 
 ## [0.5.0] - 2025-01-10
 

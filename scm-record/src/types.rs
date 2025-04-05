@@ -125,10 +125,14 @@ impl TryFrom<i32> for FileMode {
     }
 }
 
+/// The state of the selection.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Tristate {
+    /// All elements are not selected.
     False,
+    /// Some elements are selected.
     Partial,
+    /// All elements are selected.
     True,
 }
 

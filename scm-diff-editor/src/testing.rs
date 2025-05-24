@@ -60,7 +60,7 @@ impl Filesystem for TestFilesystem {
                     source: io::Error::new(io::ErrorKind::Other, "is a directory"),
                 }),
                 None => Ok(FileInfo {
-                    file_mode: FileMode::absent(),
+                    file_mode: FileMode::Absent,
                     contents: FileContents::Absent,
                 }),
             },
@@ -97,7 +97,7 @@ pub fn file_info(contents: impl Into<String>) -> FileInfo {
     let contents = contents.into();
     let num_bytes = contents.len().try_into().unwrap();
     FileInfo {
-        file_mode: FileMode(0o100644),
+        file_mode: FileMode::Unix(0o100644),
         contents: FileContents::Text {
             contents,
             hash: "abc123".to_string(),

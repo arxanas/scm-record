@@ -39,52 +39,54 @@ qux2
         },
     )?;
     assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "foo\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "qux1\n",
-                            },
-                        ],
-                    },
-                    Unchanged {
-                        lines: [
-                            "common1\n",
-                            "common2\n",
-                        ],
-                    },
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "bar\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "qux2\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            file_mode: Unix(
+                33188,
+            ),
+            sections: [
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "foo\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "qux1\n",
+                        },
+                    ],
+                },
+                Unchanged {
+                    lines: [
+                        "common1\n",
+                        "common2\n",
+                    ],
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "bar\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "qux2\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "###);
 
     select_all(&mut files);
     apply_changes(
@@ -97,34 +99,34 @@ qux2
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "left": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "foo\ncommon1\ncommon2\nbar\n",
-                        hash: "abc123",
-                        num_bytes: 24,
-                    },
-                },
-                "right": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "qux1\ncommon1\ncommon2\nqux2\n",
-                        hash: "abc123",
-                        num_bytes: 26,
-                    },
+    TestFilesystem {
+        files: {
+            "left": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "foo\ncommon1\ncommon2\nbar\n",
+                    hash: "abc123",
+                    num_bytes: 24,
                 },
             },
-            dirs: {
-                "",
+            "right": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "qux1\ncommon1\ncommon2\nqux2\n",
+                    hash: "abc123",
+                    num_bytes: 26,
+                },
             },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -168,34 +170,34 @@ qux2
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "left": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "foo\ncommon1\ncommon2\nbar\n",
-                        hash: "abc123",
-                        num_bytes: 24,
-                    },
-                },
-                "right": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "foo\ncommon1\ncommon2\nbar\n",
-                        hash: "abc123",
-                        num_bytes: 24,
-                    },
+    TestFilesystem {
+        files: {
+            "left": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "foo\ncommon1\ncommon2\nbar\n",
+                    hash: "abc123",
+                    num_bytes: 24,
                 },
             },
-            dirs: {
-                "",
+            "right": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "foo\ncommon1\ncommon2\nbar\n",
+                    hash: "abc123",
+                    num_bytes: 24,
+                },
             },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -221,27 +223,33 @@ fn test_diff_absent_left() -> Result<()> {
         },
     )?;
     assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "right\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            file_mode: Absent,
+            sections: [
+                FileMode {
+                    is_checked: false,
+                    mode: Unix(
+                        33188,
+                    ),
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "right\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "###);
 
     select_all(&mut files);
     apply_changes(
@@ -254,24 +262,24 @@ fn test_diff_absent_left() -> Result<()> {
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "right": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "right\n",
-                        hash: "abc123",
-                        num_bytes: 6,
-                    },
+    TestFilesystem {
+        files: {
+            "right": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "right\n",
+                    hash: "abc123",
+                    num_bytes: 6,
                 },
             },
-            dirs: {
-                "",
-            },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -297,27 +305,33 @@ fn test_diff_absent_right() -> Result<()> {
         },
     )?;
     assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "left\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            file_mode: Unix(
+                33188,
+            ),
+            sections: [
+                FileMode {
+                    is_checked: false,
+                    mode: Absent,
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "left\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "###);
 
     select_all(&mut files);
     apply_changes(
@@ -330,24 +344,24 @@ fn test_diff_absent_right() -> Result<()> {
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "left": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "left\n",
-                        hash: "abc123",
-                        num_bytes: 5,
-                    },
+    TestFilesystem {
+        files: {
+            "left": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "left\n",
+                    hash: "abc123",
+                    num_bytes: 5,
                 },
             },
-            dirs: {
-                "",
-            },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -415,36 +429,36 @@ fn test_diff_files_in_subdirectories() -> Result<()> {
         },
     )?;
     assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "left/foo": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "left contents\n",
-                        hash: "abc123",
-                        num_bytes: 14,
-                    },
-                },
-                "right/foo": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "left contents\n",
-                        hash: "abc123",
-                        num_bytes: 14,
-                    },
+    TestFilesystem {
+        files: {
+            "left/foo": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "left contents\n",
+                    hash: "abc123",
+                    num_bytes: 14,
                 },
             },
-            dirs: {
-                "",
-                "left",
-                "right",
+            "right/foo": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "left contents\n",
+                    hash: "abc123",
+                    num_bytes: 14,
+                },
             },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+            "left",
+            "right",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -479,36 +493,36 @@ fn test_dir_diff_no_changes() -> Result<()> {
         },
     )?;
     assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "left/foo": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "left contents\n",
-                        hash: "abc123",
-                        num_bytes: 14,
-                    },
-                },
-                "right/foo": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "left contents\n",
-                        hash: "abc123",
-                        num_bytes: 14,
-                    },
+    TestFilesystem {
+        files: {
+            "left/foo": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "left contents\n",
+                    hash: "abc123",
+                    num_bytes: 14,
                 },
             },
-            dirs: {
-                "",
-                "left",
-                "right",
+            "right/foo": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "left contents\n",
+                    hash: "abc123",
+                    num_bytes: 14,
+                },
             },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+            "left",
+            "right",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -555,48 +569,50 @@ Hello world 4
         },
     )?;
     insta::assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "base",
-                ),
-                path: "output",
-                file_mode: None,
-                sections: [
-                    Unchanged {
-                        lines: [
-                            "Hello world 1\n",
-                            "Hello world 2\n",
-                        ],
-                    },
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world L\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Removed,
-                                line: "Hello world 3\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world R\n",
-                            },
-                        ],
-                    },
-                    Unchanged {
-                        lines: [
-                            "Hello world 4\n",
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    [
+        File {
+            old_path: Some(
+                "base",
+            ),
+            path: "output",
+            file_mode: Unix(
+                33188,
+            ),
+            sections: [
+                Unchanged {
+                    lines: [
+                        "Hello world 1\n",
+                        "Hello world 2\n",
+                    ],
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world L\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Removed,
+                            line: "Hello world 3\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world R\n",
+                        },
+                    ],
+                },
+                Unchanged {
+                    lines: [
+                        "Hello world 4\n",
+                    ],
+                },
+            ],
+        },
+    ]
+    "###);
 
     select_all(&mut files);
     apply_changes(
@@ -610,54 +626,54 @@ Hello world 4
     )?;
 
     assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "base": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "Hello world 1\nHello world 2\nHello world 3\nHello world 4\n",
-                        hash: "abc123",
-                        num_bytes: 56,
-                    },
-                },
-                "left": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "Hello world 1\nHello world 2\nHello world L\nHello world 4\n",
-                        hash: "abc123",
-                        num_bytes: 56,
-                    },
-                },
-                "output": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "Hello world 1\nHello world 2\nHello world L\nHello world R\nHello world 4\n",
-                        hash: "abc123",
-                        num_bytes: 70,
-                    },
-                },
-                "right": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "Hello world 1\nHello world 2\nHello world R\nHello world 4\n",
-                        hash: "abc123",
-                        num_bytes: 56,
-                    },
+    TestFilesystem {
+        files: {
+            "base": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "Hello world 1\nHello world 2\nHello world 3\nHello world 4\n",
+                    hash: "abc123",
+                    num_bytes: 56,
                 },
             },
-            dirs: {
-                "",
+            "left": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "Hello world 1\nHello world 2\nHello world L\nHello world 4\n",
+                    hash: "abc123",
+                    num_bytes: 56,
+                },
             },
-        }
-        "###);
+            "output": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "Hello world 1\nHello world 2\nHello world L\nHello world R\nHello world 4\n",
+                    hash: "abc123",
+                    num_bytes: 70,
+                },
+            },
+            "right": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "Hello world 1\nHello world 2\nHello world R\nHello world 4\n",
+                    hash: "abc123",
+                    num_bytes: 56,
+                },
+            },
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     Ok(())
 }
@@ -688,32 +704,38 @@ Hello world 2
         },
     )?;
     insta::assert_debug_snapshot!(files, @r###"
-        [
-            File {
-                old_path: Some(
-                    "left",
-                ),
-                path: "right",
-                file_mode: None,
-                sections: [
-                    Changed {
-                        lines: [
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world 1\n",
-                            },
-                            SectionChangedLine {
-                                is_checked: false,
-                                change_type: Added,
-                                line: "Hello world 2\n",
-                            },
-                        ],
-                    },
-                ],
-            },
-        ]
-        "###);
+    [
+        File {
+            old_path: Some(
+                "left",
+            ),
+            path: "right",
+            file_mode: Absent,
+            sections: [
+                FileMode {
+                    is_checked: false,
+                    mode: Unix(
+                        33188,
+                    ),
+                },
+                Changed {
+                    lines: [
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world 1\n",
+                        },
+                        SectionChangedLine {
+                            is_checked: false,
+                            change_type: Added,
+                            line: "Hello world 2\n",
+                        },
+                    ],
+                },
+            ],
+        },
+    ]
+    "###);
 
     // Select no changes from new file.
     apply_changes(
@@ -726,13 +748,13 @@ Hello world 2
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {},
-            dirs: {
-                "",
-            },
-        }
-        "###);
+    TestFilesystem {
+        files: {},
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     // Select all changes from new file.
     select_all(&mut files);
@@ -746,27 +768,27 @@ Hello world 2
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "right": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "Hello world 1\nHello world 2\n",
-                        hash: "abc123",
-                        num_bytes: 28,
-                    },
+    TestFilesystem {
+        files: {
+            "right": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "Hello world 1\nHello world 2\n",
+                    hash: "abc123",
+                    num_bytes: 28,
                 },
             },
-            dirs: {
-                "",
-            },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     // Select only some changes from new file.
-    match files[0].sections.get_mut(0).unwrap() {
+    match files[0].sections.get_mut(1).unwrap() {
         Section::Changed { ref mut lines } => lines[0].is_checked = false,
         _ => panic!("Expected changed section"),
     }
@@ -780,24 +802,24 @@ Hello world 2
         },
     )?;
     insta::assert_debug_snapshot!(filesystem, @r###"
-        TestFilesystem {
-            files: {
-                "right": FileInfo {
-                    file_mode: FileMode(
-                        33188,
-                    ),
-                    contents: Text {
-                        contents: "Hello world 2\n",
-                        hash: "abc123",
-                        num_bytes: 14,
-                    },
+    TestFilesystem {
+        files: {
+            "right": FileInfo {
+                file_mode: Unix(
+                    33188,
+                ),
+                contents: Text {
+                    contents: "Hello world 2\n",
+                    hash: "abc123",
+                    num_bytes: 14,
                 },
             },
-            dirs: {
-                "",
-            },
-        }
-        "###);
+        },
+        dirs: {
+            "",
+        },
+    }
+    "###);
 
     Ok(())
 }

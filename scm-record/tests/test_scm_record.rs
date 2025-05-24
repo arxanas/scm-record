@@ -19,7 +19,7 @@ fn example_contents() -> RecordState<'static> {
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo/bar")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![
                     Section::Unchanged {
                         lines: iter::repeat(Cow::Borrowed("this is some text\n"))
@@ -58,7 +58,7 @@ fn example_contents() -> RecordState<'static> {
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("baz")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![
                     Section::Unchanged {
                         lines: vec![
@@ -546,7 +546,7 @@ fn test_enter_next() -> TestResult {
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![Section::Changed {
                     lines: vec![
                         SectionChangedLine {
@@ -565,7 +565,7 @@ fn test_enter_next() -> TestResult {
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("bar")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![Section::Changed {
                     lines: vec![
                         SectionChangedLine {
@@ -631,23 +631,22 @@ fn test_file_mode_change() -> TestResult {
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![],
             },
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("bar")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![Section::FileMode {
                     is_checked: false,
-                    before: FileMode(0o100644),
-                    after: FileMode(0o100755),
+                    mode: FileMode::Unix(0o100755),
                 }],
             },
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("qux")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![],
             },
         ],
@@ -687,20 +686,21 @@ fn test_file_mode_change() -> TestResult {
             File {
                 old_path: None,
                 path: "foo",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [],
             },
             File {
                 old_path: None,
                 path: "bar",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     FileMode {
                         is_checked: true,
-                        before: FileMode(
-                            33188,
-                        ),
-                        after: FileMode(
+                        mode: Unix(
                             33261,
                         ),
                     },
@@ -709,7 +709,9 @@ fn test_file_mode_change() -> TestResult {
             File {
                 old_path: None,
                 path: "qux",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [],
             },
         ],
@@ -719,7 +721,7 @@ fn test_file_mode_change() -> TestResult {
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "[ ] bar                                                                      [-]"
-    "  [ ] File mode changed from 100644 to 100755                                   "
+    "  [ ] File mode set to 100755                                                   "
     "[ ] qux                                                                      [-]"
     "                                                                                "
     "###);
@@ -727,7 +729,7 @@ fn test_file_mode_change() -> TestResult {
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "[●] bar                                                                      [-]"
-    "  (●) File mode changed from 100644 to 100755                                   "
+    "  (●) File mode set to 100755                                                   "
     "[ ] qux                                                                      [-]"
     "                                                                                "
     "###);
@@ -735,7 +737,7 @@ fn test_file_mode_change() -> TestResult {
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "[●] bar                                                                      [-]"
-    "  [●] File mode changed from 100644 to 100755                                   "
+    "  [●] File mode set to 100755                                                   "
     "( ) qux                                                                      (-)"
     "                                                                                "
     "###);
@@ -753,7 +755,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Unchanged {
                     lines: (1..=section_length)
@@ -936,7 +938,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Unchanged {
                     lines: (1..=section_length)
@@ -1013,7 +1015,7 @@ fn test_record_binary_file() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![Section::Binary {
                 is_checked: false,
                 old_description: Some(Cow::Owned(make_binary_description("abc123", 123))),
@@ -1060,7 +1062,9 @@ fn test_record_binary_file() -> TestResult {
             File {
                 old_path: None,
                 path: "foo",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Binary {
                         is_checked: true,
@@ -1079,16 +1083,28 @@ fn test_record_binary_file() -> TestResult {
 
     let (selected, unselected) = state.files[0].get_selected_contents();
     assert_debug_snapshot!(selected, @r###"
-    Binary {
-        old_description: Some(
-            "abc123 (123 bytes)",
+    SelectedChanges {
+        file_mode: Unix(
+            33188,
         ),
-        new_description: Some(
-            "def456 (456 bytes)",
-        ),
+        contents: Binary {
+            old_description: Some(
+                "abc123 (123 bytes)",
+            ),
+            new_description: Some(
+                "def456 (456 bytes)",
+            ),
+        },
     }
     "###);
-    assert_debug_snapshot!(unselected, @"Unchanged");
+    assert_debug_snapshot!(unselected, @r"
+    SelectedChanges {
+        file_mode: Unix(
+            33188,
+        ),
+        contents: Unchanged,
+    }
+    ");
 
     Ok(())
 }
@@ -1101,7 +1117,7 @@ fn test_record_binary_file_noop() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![Section::Binary {
                 is_checked: false,
                 old_description: Some(Cow::Owned(make_binary_description("abc123", 123))),
@@ -1143,7 +1159,9 @@ fn test_record_binary_file_noop() -> TestResult {
             File {
                 old_path: None,
                 path: "foo",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Binary {
                         is_checked: false,
@@ -1161,15 +1179,27 @@ fn test_record_binary_file_noop() -> TestResult {
     "###);
 
     let (selected, unselected) = state.files[0].get_selected_contents();
-    assert_debug_snapshot!(selected, @"Unchanged");
+    assert_debug_snapshot!(selected, @r"
+    SelectedChanges {
+        file_mode: Unix(
+            33188,
+        ),
+        contents: Unchanged,
+    }
+    ");
     assert_debug_snapshot!(unselected, @r###"
-    Binary {
-        old_description: Some(
-            "abc123 (123 bytes)",
+    SelectedChanges {
+        file_mode: Unix(
+            33188,
         ),
-        new_description: Some(
-            "def456 (456 bytes)",
-        ),
+        contents: Binary {
+            old_description: Some(
+                "abc123 (123 bytes)",
+            ),
+            new_description: Some(
+                "def456 (456 bytes)",
+            ),
+        },
     }
     "###);
 
@@ -1182,7 +1212,7 @@ fn test_state_binary_selected_contents() -> TestResult {
         let file = File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Changed {
                     lines: vec![SectionChangedLine {
@@ -1202,19 +1232,19 @@ fn test_state_binary_selected_contents() -> TestResult {
         format!("{selection:?}")
     };
 
-    assert_snapshot!(test(false, false), @r###"(Unchanged, Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") })"###);
+    assert_snapshot!(test(false, false), @r###"(SelectedChanges { file_mode: Unix(33188), contents: Unchanged }, SelectedChanges { file_mode: Unix(33188), contents: Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") } })"###);
 
     // FIXME: should the selected contents be `Present { contents: "" }`? (Or
     // possibly `Absent`?)
-    assert_snapshot!(test(true, false), @r###"(Unchanged, Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") })"###);
+    assert_snapshot!(test(true, false), @r###"(SelectedChanges { file_mode: Unix(33188), contents: Unchanged }, SelectedChanges { file_mode: Unix(33188), contents: Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") } })"###);
 
     // NB: The result for this situation, where we've selected both a text and
     // binary segment for inclusion, is arbitrary. The caller should avoid
     // generating both kinds of sections in the same file (or we should improve
     // the UI to never allow selecting both).
-    assert_snapshot!(test(false, true), @r###"(Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") }, Unchanged)"###);
+    assert_snapshot!(test(false, true), @r###"(SelectedChanges { file_mode: Unix(33188), contents: Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") } }, SelectedChanges { file_mode: Unix(33188), contents: Unchanged })"###);
 
-    assert_snapshot!(test(true, true), @r###"(Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") }, Unchanged)"###);
+    assert_snapshot!(test(true, true), @r###"(SelectedChanges { file_mode: Unix(33188), contents: Binary { old_description: Some("abc123 (123 bytes)"), new_description: Some("def456 (456 bytes)") } }, SelectedChanges { file_mode: Unix(33188), contents: Unchanged })"###);
 
     Ok(())
 }
@@ -1283,17 +1313,16 @@ fn test_mouse_click_checkbox() -> TestResult {
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo")),
-                file_mode: None,
+                file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![],
             },
             File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("bar")),
-                file_mode: None,
+                file_mode: FileMode::Absent,
                 sections: vec![Section::FileMode {
                     is_checked: false,
-                    before: FileMode::absent(),
-                    after: FileMode(0o100644),
+                    mode: FileMode::FILE_DEFAULT,
                 }],
             },
         ],
@@ -1322,19 +1351,19 @@ fn test_mouse_click_checkbox() -> TestResult {
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
     "[ ] bar                                                                      [-]"
-    "  [ ] File mode changed from 0 to 100644                                        "
+    "  [ ] File mode set to 100644                                                   "
     "###);
     insta::assert_snapshot!(click_unselected_checkbox, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "( ) bar                                                                      (-)"
-    "  [ ] File mode changed from 0 to 100644                                        "
+    "  [ ] File mode set to 100644                                                   "
     "###);
     insta::assert_snapshot!(click_selected_checkbox, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
     "(●) bar                                                                      (-)"
-    "  [●] File mode changed from 0 to 100644                                        "
+    "  [●] File mode set to 100644                                                   "
     "###);
 
     Ok(())
@@ -1348,12 +1377,11 @@ fn test_mouse_click_wide_line() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::Absent,
             sections: vec![
                 Section::FileMode {
                     is_checked: false,
-                    before: FileMode::absent(),
-                    after: FileMode(0o100644),
+                    mode: FileMode::FILE_DEFAULT,
                 },
                 Section::Changed {
                     lines: vec![SectionChangedLine {
@@ -1394,35 +1422,35 @@ fn test_mouse_click_wide_line() -> TestResult {
     insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
-    "  [ ] File mode changed from 0 to 100644                                        "
+    "  [ ] File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
     "###);
     insta::assert_snapshot!(click_line, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
-    "  [ ] File mode changed from 0 to 100644                                        "
+    "  [ ] File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    ( ) - foo⏎                                                                  "
     "###);
     insta::assert_snapshot!(click_line_section, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
-    "  [ ] File mode changed from 0 to 100644                                        "
+    "  [ ] File mode set to 100644                                                   "
     "  ( ) Section 2/2                                                            (-)"
     "    [ ] - foo⏎                                                                  "
     "###);
     insta::assert_snapshot!(click_file_mode_section, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[ ] foo                                                                      [-]"
-    "  ( ) File mode changed from 0 to 100644                                        "
+    "  ( ) File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
     "###);
     insta::assert_snapshot!(click_file, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "( ) foo                                                                      (-)"
-    "  [ ] File mode changed from 0 to 100644                                        "
+    "  [ ] File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
     "###);
@@ -1438,7 +1466,7 @@ fn test_mouse_click_dialog_buttons() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![Section::Changed {
                 lines: vec![SectionChangedLine {
                     is_checked: true,
@@ -1490,7 +1518,7 @@ fn test_render_old_path() -> TestResult {
         files: vec![File {
             old_path: Some(Cow::Borrowed(Path::new("foo"))),
             path: Cow::Borrowed(Path::new("bar")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![],
         }],
     };
@@ -2384,7 +2412,9 @@ fn test_read_only() -> TestResult {
             File {
                 old_path: None,
                 path: "foo/bar",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Unchanged {
                         lines: [
@@ -2444,7 +2474,9 @@ fn test_read_only() -> TestResult {
             File {
                 old_path: None,
                 path: "baz",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Unchanged {
                         lines: [
@@ -2534,7 +2566,9 @@ fn test_toggle_unchanged_line() -> TestResult {
             File {
                 old_path: None,
                 path: "foo/bar",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Unchanged {
                         lines: [
@@ -2594,7 +2628,9 @@ fn test_toggle_unchanged_line() -> TestResult {
             File {
                 old_path: None,
                 path: "baz",
-                file_mode: None,
+                file_mode: Unix(
+                    33188,
+                ),
                 sections: [
                     Unchanged {
                         lines: [
@@ -2648,7 +2684,7 @@ fn test_max_file_view_width() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Owned("very/".repeat(100).into()),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Unchanged {
                     lines: vec![Cow::Owned("very ".repeat(100))],
@@ -3339,7 +3375,7 @@ fn test_tabs_in_files() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo/bar")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Unchanged {
                     lines: iter::repeat(Cow::Borrowed("\tthis is some indented text\n"))
@@ -3447,7 +3483,7 @@ fn test_carriage_return() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![Section::Changed {
                 lines: vec![
                     SectionChangedLine {
@@ -3530,7 +3566,7 @@ fn test_some_control_characters() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![Section::Changed {
                 lines: vec![SectionChangedLine {
                     is_checked: false,
@@ -3572,7 +3608,7 @@ fn test_non_printing_characters() -> TestResult {
         files: vec![File {
             old_path: None,
             path: Cow::Borrowed(Path::new("foo")),
-            file_mode: None,
+            file_mode: FileMode::FILE_DEFAULT,
             sections: vec![Section::Changed {
                 lines: vec![SectionChangedLine {
                     is_checked: false,

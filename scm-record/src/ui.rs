@@ -1410,20 +1410,16 @@ impl<'state, 'input> Recorder<'state, 'input> {
     // is returned. Otherwise, the next key is returned.
     fn select_prev_or_next_of_same_kind(&self, select_previous: bool) -> SelectionKey {
         let (keys, index) = self.find_selection();
-        let iterate_keys_with_wrap_around = |i| -> Box<dyn DoubleEndedIterator<Item = _>> {
-            let forward_iter = keys[i + 1..] // Skip the current key
-                .iter()
-                .chain(keys[..i].iter());
-            if select_previous {
-                Box::new(forward_iter.rev())
-            } else {
-                Box::new(forward_iter)
-            }
-        };
         match index {
             None => self.first_selection_key(),
             Some(index) => {
-                match iterate_keys_with_wrap_around(index)
+                let mut iterate_keys: Box<dyn DoubleEndedIterator<Item = _>> = match select_previous
+                {
+                    true => Box::new(keys[..index].iter().rev()),
+                    false => Box::new(keys[index + 1..].iter()),
+                };
+
+                match iterate_keys
                     .find(|k| std::mem::discriminant(*k) == std::mem::discriminant(&keys[index]))
                 {
                     None => keys[index],

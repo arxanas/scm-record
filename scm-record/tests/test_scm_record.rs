@@ -3100,27 +3100,37 @@ fn test_next_prev() -> TestResult {
 #[test]
 fn test_prev_same_kind() -> TestResult {
     let initial = TestingScreenshot::default();
+    let still_initial = TestingScreenshot::default();
     let to_baz = TestingScreenshot::default();
     let to_baz_section = TestingScreenshot::default();
     let to_bar_section = TestingScreenshot::default();
-    let to_baz_lines = TestingScreenshot::default();
+    let to_bar_lines = TestingScreenshot::default();
+    let to_bar_first_line = TestingScreenshot::default();
     let mut input = TestingInput::new(
         80,
         20,
         [
             Event::ExpandAll,
             initial.event(),
-            // Moves the current item from foo/bar to baz
+            // Fails to move the current item from foo/bar (no wrapping)
             Event::FocusPrevSameKind,
+            still_initial.event(),
+            // Move from foo/bar to baz
+            Event::FocusNextSameKind,
             to_baz.event(),
             Event::FocusInner,
             to_baz_section.event(),
             Event::FocusPrevSameKind,
             to_bar_section.event(),
+            Event::FocusNextSameKind,
             Event::FocusInner,
             Event::FocusPrevSameKind,
             Event::FocusPrevSameKind,
-            to_baz_lines.event(),
+            to_bar_lines.event(),
+            Event::FocusPrevSameKind,
+            Event::FocusPrevSameKind,
+            Event::FocusPrevSameKind,
+            to_bar_first_line.event(),
             Event::QuitAccept,
         ],
     );
@@ -3129,6 +3139,28 @@ fn test_prev_same_kind() -> TestResult {
     recorder.run()?;
 
     insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(◐) foo/bar                                                                  (-)"
+    "        ⋮                                                                       "
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  [●] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "###);
+    insta::assert_snapshot!(still_initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -3216,7 +3248,7 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
     "###);
-    insta::assert_snapshot!(to_baz_lines, @r###"
+    insta::assert_snapshot!(to_bar_lines, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
@@ -3224,6 +3256,28 @@ fn test_prev_same_kind() -> TestResult {
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    (●) + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  [●] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "        5 this is some trailing text⏎                                           "
+    "###);
+    insta::assert_snapshot!(to_bar_first_line, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[◐] foo/bar                                                                  [-]"
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    (●) - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
@@ -3234,7 +3288,7 @@ fn test_prev_same_kind() -> TestResult {
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
-    "    (●) + after text 1⏎                                                         "
+    "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
     "###);
@@ -3246,6 +3300,7 @@ fn test_next_same_kind() -> TestResult {
     let initial = TestingScreenshot::default();
     let to_baz = TestingScreenshot::default();
     let to_baz_section = TestingScreenshot::default();
+    let still_baz_section = TestingScreenshot::default();
     let to_bar_section = TestingScreenshot::default();
     let to_bar_lines = TestingScreenshot::default();
     let mut input = TestingInput::new(
@@ -3260,6 +3315,8 @@ fn test_next_same_kind() -> TestResult {
             Event::FocusInner,
             to_baz_section.event(),
             Event::FocusNextSameKind,
+            still_baz_section.event(),
+            Event::FocusPrevSameKind,
             to_bar_section.event(),
             Event::FocusInner,
             Event::FocusNextSameKind,
@@ -3317,6 +3374,28 @@ fn test_next_same_kind() -> TestResult {
     "        5 this is some trailing text⏎                                           "
     "###);
     insta::assert_snapshot!(to_baz_section, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[◐] foo/bar                                                                  [-]"
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  (●) Section 1/1                                                            (-)"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "        5 this is some trailing text⏎                                           "
+    "###);
+    insta::assert_snapshot!(still_baz_section, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "

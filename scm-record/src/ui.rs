@@ -1388,11 +1388,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
         match index {
             None => self.first_selection_key(),
             Some(index) => match index.checked_sub(1) {
-                Some(index) => keys[index],
-                None => {
-                    // TODO: this behavior will be wrong if we have keys for each `Commit` (which currently isn't the case).
-                    *keys.last().unwrap()
-                }
+                Some(prev_index) => keys[prev_index],
+                None => keys[index],
             },
         }
     }
@@ -1402,7 +1399,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             None => self.first_selection_key(),
             Some(index) => match keys.get(index + 1) {
                 Some(key) => *key,
-                None => keys[0],
+                None => keys[index],
             },
         }
     }

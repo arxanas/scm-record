@@ -2973,6 +2973,131 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
 }
 
 #[test]
+fn test_next_prev() -> TestResult {
+    let initial = TestingScreenshot::default();
+    let still_initial = initial.clone();
+    let to_baz_section = TestingScreenshot::default();
+    let to_baz_lines = TestingScreenshot::default();
+    let to_baz_line3 = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        20,
+        [
+            Event::ExpandAll,
+            initial.event(),
+            Event::FocusPrev,
+            still_initial.event(),
+            Event::FocusNextSameKind,
+            Event::FocusNext,
+            to_baz_section.event(),
+            Event::FocusNext,
+            to_baz_lines.event(),
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::FocusNext,
+            Event::FocusPrev,
+            to_baz_line3.event(),
+            Event::QuitAccept,
+        ],
+    );
+    let state = example_contents();
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "(◐) foo/bar                                                                  (-)"
+    "        ⋮                                                                       "
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  [●] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "###);
+    insta::assert_snapshot!(to_baz_section, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[◐] foo/bar                                                                  [-]"
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  (●) Section 1/1                                                            (-)"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "        5 this is some trailing text⏎                                           "
+    "###);
+    insta::assert_snapshot!(to_baz_lines, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[◐] foo/bar                                                                  [-]"
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  [●] Section 1/1                                                            [-]"
+    "    (●) - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "        5 this is some trailing text⏎                                           "
+    "###);
+    insta::assert_snapshot!(to_baz_line3, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[◐] foo/bar                                                                  [-]"
+    "       18 this is some text⏎                                                    "
+    "       19 this is some text⏎                                                    "
+    "       20 this is some text⏎                                                    "
+    "  [◐] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    [●] + after text 1⏎                                                         "
+    "    [ ] + after text 2⏎                                                         "
+    "       23 this is some trailing text⏎                                           "
+    "[●] baz                                                                      [-]"
+    "        1 Some leading text 1⏎                                                  "
+    "        2 Some leading text 2⏎                                                  "
+    "  [●] Section 1/1                                                            [-]"
+    "    [●] - before text 1⏎                                                        "
+    "    [●] - before text 2⏎                                                        "
+    "    (●) + after text 1⏎                                                         "
+    "    [●] + after text 2⏎                                                         "
+    "        5 this is some trailing text⏎                                           "
+    "###);
+    Ok(())
+}
+
+#[test]
 fn test_prev_same_kind() -> TestResult {
     let initial = TestingScreenshot::default();
     let to_baz = TestingScreenshot::default();

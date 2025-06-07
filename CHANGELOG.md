@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Fixed
+
+- (#112): Fixed shift+h / shift+l, used to select outer / inner item without folding
+
 ## [0.10.1] - 2026-01-22
 
 ### Changed

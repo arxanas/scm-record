@@ -6,7 +6,7 @@ use crate::{Event, RecordError, RecordInput, TerminalKind};
 
 /// Generate a one-line description of a binary file change.
 pub fn make_binary_description(hash: &str, num_bytes: u64) -> String {
-    format!("{} ({} bytes)", hash, num_bytes)
+    format!("{hash} ({num_bytes} bytes)")
 }
 
 /// Reads input events from the terminal using `crossterm`.

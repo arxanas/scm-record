@@ -480,8 +480,8 @@ fn print_dry_run(write_root: &Path, state: RecordState) {
                 new_description,
             } => {
                 println!("Would update binary file: {}", file_path.display());
-                println!("  Old: {:?}", old_description);
-                println!("  New: {:?}", new_description);
+                println!("  Old: {old_description:?}");
+                println!("  New: {new_description:?}");
             }
             SelectedContents::Text { contents } => {
                 println!("Would update text file: {}", file_path.display());
@@ -634,7 +634,7 @@ mod tests {
                 None => match self.dirs.get(path) {
                     Some(_path) => Err(Error::ReadFile {
                         path: path.to_owned(),
-                        source: io::Error::new(io::ErrorKind::Other, "is a directory"),
+                        source: io::Error::other("is a directory"),
                     }),
                     None => Ok(FileInfo {
                         file_mode: FileMode::Absent,

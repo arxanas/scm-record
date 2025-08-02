@@ -57,7 +57,7 @@ impl Filesystem for TestFilesystem {
             None => match self.dirs.get(path) {
                 Some(_path) => Err(Error::ReadFile {
                     path: path.to_owned(),
-                    source: io::Error::new(io::ErrorKind::Other, "is a directory"),
+                    source: io::Error::other("is a directory"),
                 }),
                 None => Ok(FileInfo {
                     file_mode: FileMode::Absent,

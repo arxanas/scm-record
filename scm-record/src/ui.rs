@@ -402,12 +402,7 @@ fn buffer_view(buffer: &Buffer) -> String {
         }
         view.push('"');
         if !overwritten.is_empty() {
-            write!(
-                &mut view,
-                " Hidden by multi-width symbols: {:?}",
-                overwritten
-            )
-            .unwrap();
+            write!(&mut view, " Hidden by multi-width symbols: {overwritten:?}").unwrap();
         }
         view.push('\n');
     }

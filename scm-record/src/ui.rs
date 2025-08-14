@@ -257,6 +257,19 @@ impl From<crossterm::event::Event> for Event {
             }) => Self::FocusNextSameKind,
 
             Event::Key(KeyEvent {
+                code: KeyCode::Char('K'),
+                modifiers: KeyModifiers::SHIFT,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::FocusPrevSameKind,
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('J'),
+                modifiers: KeyModifiers::SHIFT,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::FocusNextSameKind,
+
+            Event::Key(KeyEvent {
                 code: KeyCode::Left | KeyCode::Char('h'),
                 modifiers: KeyModifiers::SHIFT,
                 kind: KeyEventKind::Press,

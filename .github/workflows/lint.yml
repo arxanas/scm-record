@@ -54,5 +54,5 @@ jobs:
         env:
           RUSTDOCFLAGS: "--deny warnings"
         with:
-          command: clippy
-          args: --workspace --all-features --all-targets -- --deny warnings
+          command: doc
+          args: --workspace --all-features

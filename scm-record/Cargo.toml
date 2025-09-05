@@ -10,7 +10,7 @@ version = "0.8.0"
 # Main consumers to consider:
 # - git-branchless: https://github.com/arxanas/git-branchless/blob/master/Cargo.toml
 # - jj: https://github.com/martinvonz/jj/blob/main/Cargo.toml
-rust-version = "1.74"
+rust-version = "1.85"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

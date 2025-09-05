@@ -55,4 +55,4 @@ jobs:
           RUSTDOCFLAGS: "--deny warnings"
         with:
           command: doc
-          args: --workspace --all-features --all-targets -- --deny warnings
+          args: --workspace --all-features

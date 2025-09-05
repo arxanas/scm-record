@@ -2121,7 +2121,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         Ok(())
     }
 
-    fn file(&self, file_key: FileKey) -> Result<&File, RecordError> {
+    fn file(&self, file_key: FileKey) -> Result<&File<'_>, RecordError> {
         let FileKey {
             commit_idx: _,
             file_idx,
@@ -2134,7 +2134,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         }
     }
 
-    fn section(&self, section_key: SectionKey) -> Result<&Section, RecordError> {
+    fn section(&self, section_key: SectionKey) -> Result<&Section<'_>, RecordError> {
         let SectionKey {
             commit_idx,
             file_idx,
@@ -3573,7 +3573,7 @@ struct Button<'a, Id> {
 }
 
 impl<Id> Button<'_, Id> {
-    fn span(&self) -> Span {
+    fn span(&self) -> Span<'_> {
         let Self {
             id: _,
             label,

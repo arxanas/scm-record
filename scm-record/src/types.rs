@@ -234,7 +234,7 @@ impl File<'_> {
     /// Calculate the `(selected, unselected)` contents of the file. For
     /// example, the first value would be suitable for staging or committing,
     /// and the second value would be suitable for potentially recording again.
-    pub fn get_selected_contents(&self) -> (SelectedChanges, SelectedChanges) {
+    pub fn get_selected_contents(&self) -> (SelectedChanges<'_>, SelectedChanges<'_>) {
         let mut acc_selected = SelectedContents::Unchanged;
         let mut acc_unselected = SelectedContents::Unchanged;
 

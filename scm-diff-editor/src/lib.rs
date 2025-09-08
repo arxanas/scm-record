@@ -69,6 +69,11 @@ pub struct Opts {
     /// Write the resolved merge conflicts to this file.
     #[clap(short = 'o', long = "output", conflicts_with("dir_diff"))]
     pub output: Option<PathBuf>,
+
+    /// Display a status message at the bottom of the screen to provide context
+    /// or instructions to the user.
+    #[clap(short = 'm', long = "status-message")]
+    pub status_message: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -343,6 +348,7 @@ pub fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffCont
             output: _,
             read_only: _,
             dry_run: _,
+            status_message: _,
         } => {
             let files = vec![render::create_file(
                 filesystem,
@@ -365,6 +371,7 @@ pub fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffCont
             output: _,
             read_only: _,
             dry_run: _,
+            status_message: _,
         } => {
             let display_paths = filesystem.read_dir_diff_paths(left, right)?;
             let mut files = Vec::new();
@@ -391,6 +398,7 @@ pub fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffCont
             output: Some(output),
             read_only: _,
             dry_run: _,
+            status_message: _,
         } => {
             let files = vec![render::create_merge_file(
                 filesystem,
@@ -413,6 +421,7 @@ pub fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffCont
             output: None,
             read_only: _,
             dry_run: _,
+            status_message: _,
         } => {
             unreachable!("--output is required when --base is provided");
         }
@@ -425,6 +434,7 @@ pub fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffCont
             output: _,
             read_only: _,
             dry_run: _,
+            status_message: _,
         } => {
             unimplemented!("--base cannot be used with --dir-diff");
         }
@@ -435,6 +445,7 @@ pub fn process_opts(filesystem: &dyn Filesystem, opts: &Opts) -> Result<DiffCont
 fn print_dry_run(write_root: &Path, state: RecordState) {
     let RecordState {
         is_read_only: _,
+        status_message: _,
         commits: _,
         files,
     } = state;
@@ -502,6 +513,7 @@ pub fn apply_changes(
 ) -> Result<()> {
     let RecordState {
         is_read_only,
+        status_message: _,
         commits: _,
         files,
     } = state;
@@ -555,6 +567,7 @@ pub fn run(opts: Opts) -> Result<()> {
     let DiffContext { files, write_root } = process_opts(&filesystem, &opts)?;
     let state = RecordState {
         is_read_only: opts.read_only,
+        status_message: opts.status_message,
         commits: Default::default(),
         files,
     };
@@ -715,6 +728,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         )?;
@@ -774,6 +788,7 @@ qux2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -836,6 +851,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         )?;
@@ -845,6 +861,7 @@ qux2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -899,6 +916,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         )?;
@@ -937,6 +955,7 @@ qux2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -981,6 +1000,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         )?;
@@ -1019,6 +1039,7 @@ qux2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -1061,6 +1082,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         );
@@ -1095,6 +1117,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         )?;
@@ -1104,6 +1127,7 @@ qux2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -1159,6 +1183,7 @@ qux2
                 base: None,
                 output: None,
                 read_only: false,
+                status_message: None,
                 dry_run: false,
             },
         )?;
@@ -1168,6 +1193,7 @@ qux2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -1243,6 +1269,7 @@ Hello world 4
                 left: "left".into(),
                 right: "right".into(),
                 read_only: false,
+                status_message: None,
                 dry_run: false,
                 base: Some("base".into()),
                 output: Some("output".into()),
@@ -1300,6 +1327,7 @@ Hello world 4
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files,
             },
@@ -1378,6 +1406,7 @@ Hello world 2
                 left: "left".into(),
                 right: "right".into(),
                 read_only: false,
+                status_message: None,
                 dry_run: false,
                 base: None,
                 output: None,
@@ -1423,6 +1452,7 @@ Hello world 2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files: files.clone(),
             },
@@ -1443,6 +1473,7 @@ Hello world 2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files: files.clone(),
             },
@@ -1477,6 +1508,7 @@ Hello world 2
             &write_root,
             RecordState {
                 is_read_only: false,
+                status_message: None,
                 commits: Default::default(),
                 files: files.clone(),
             },

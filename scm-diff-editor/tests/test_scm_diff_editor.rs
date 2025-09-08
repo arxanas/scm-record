@@ -35,6 +35,7 @@ qux2
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     )?;
@@ -94,6 +95,7 @@ qux2
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -156,6 +158,7 @@ qux2
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     )?;
@@ -165,6 +168,7 @@ qux2
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -219,6 +223,7 @@ fn test_diff_absent_left() -> Result<()> {
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     )?;
@@ -257,6 +262,7 @@ fn test_diff_absent_left() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -301,6 +307,7 @@ fn test_diff_absent_right() -> Result<()> {
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     )?;
@@ -339,6 +346,7 @@ fn test_diff_absent_right() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -381,6 +389,7 @@ fn test_reject_diff_non_files() -> Result<()> {
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     );
@@ -415,6 +424,7 @@ fn test_diff_files_in_subdirectories() -> Result<()> {
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     )?;
@@ -424,6 +434,7 @@ fn test_diff_files_in_subdirectories() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -479,6 +490,7 @@ fn test_dir_diff_no_changes() -> Result<()> {
             base: None,
             output: None,
             read_only: false,
+            status_message: None,
             dry_run: false,
         },
     )?;
@@ -488,6 +500,7 @@ fn test_dir_diff_no_changes() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -563,6 +576,7 @@ Hello world 4
             left: "left".into(),
             right: "right".into(),
             read_only: false,
+            status_message: None,
             dry_run: false,
             base: Some("base".into()),
             output: Some("output".into()),
@@ -620,6 +634,7 @@ Hello world 4
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files,
         },
@@ -698,6 +713,7 @@ Hello world 2
             left: "left".into(),
             right: "right".into(),
             read_only: false,
+            status_message: None,
             dry_run: false,
             base: None,
             output: None,
@@ -743,6 +759,7 @@ Hello world 2
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files: files.clone(),
         },
@@ -763,6 +780,7 @@ Hello world 2
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files: files.clone(),
         },
@@ -797,6 +815,7 @@ Hello world 2
         &write_root,
         RecordState {
             is_read_only: false,
+            status_message: None,
             commits: Default::default(),
             files: files.clone(),
         },

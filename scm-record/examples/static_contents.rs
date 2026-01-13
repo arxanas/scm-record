@@ -17,9 +17,7 @@ fn main() {
             file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Unchanged {
-                    lines: std::iter::repeat(Cow::Borrowed("this is some text\n"))
-                        .take(20)
-                        .collect(),
+                    lines: std::iter::repeat_n(Cow::Borrowed("this is some text\n"), 20).collect(),
                 },
                 Section::Changed {
                     lines: vec![

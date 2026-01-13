@@ -22,9 +22,7 @@ fn example_contents() -> RecordState<'static> {
                 file_mode: FileMode::FILE_DEFAULT,
                 sections: vec![
                     Section::Unchanged {
-                        lines: iter::repeat(Cow::Borrowed("this is some text\n"))
-                            .take(20)
-                            .collect(),
+                        lines: iter::repeat_n(Cow::Borrowed("this is some text\n"), 20).collect(),
                     },
                     Section::Changed {
                         lines: vec![
@@ -3582,8 +3580,7 @@ fn test_tabs_in_files() -> TestResult {
             file_mode: FileMode::FILE_DEFAULT,
             sections: vec![
                 Section::Unchanged {
-                    lines: iter::repeat(Cow::Borrowed("\tthis is some indented text\n"))
-                        .take(10)
+                    lines: iter::repeat_n(Cow::Borrowed("\tthis is some indented text\n"), 10)
                         .collect(),
                 },
                 Section::Changed {

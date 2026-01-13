@@ -22,7 +22,7 @@ use crossterm::terminal::{
 };
 use ratatui::backend::{Backend, TestBackend};
 use ratatui::buffer::Buffer;
-use ratatui::style::{Color, Modifier, Style, Stylize};
+use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph};
 use ratatui::{backend::CrosstermBackend, Terminal};
@@ -508,7 +508,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             let ui_state =
                 serde_json::to_string_pretty(&self.state).map_err(RecordError::SerializeJson)?;
             std::fs::write(crate::consts::DUMP_UI_STATE_FILENAME, ui_state)
-                .map_err(RecordError::WriteFile)?;
+                .map_err(|err| RecordError::WriteFile(err.into()))?;
         }
 
         match self.input.terminal_kind() {
@@ -522,8 +522,10 @@ impl<'state, 'input> Recorder<'state, 'input> {
         Self::set_up_crossterm()?;
         Self::install_panic_hook();
         let backend = CrosstermBackend::new(io::stdout());
-        let mut term = Terminal::new(backend).map_err(RecordError::SetUpTerminal)?;
-        term.clear().map_err(RecordError::RenderFrame)?;
+        let mut term =
+            Terminal::new(backend).map_err(|err| RecordError::SetUpTerminal(err.into()))?;
+        term.clear()
+            .map_err(|err| RecordError::RenderFrame(err.into()))?;
         let result = self.run_inner(&mut term);
         Self::clean_up_crossterm()?;
         result
@@ -548,26 +550,26 @@ impl<'state, 'input> Recorder<'state, 'input> {
     }
 
     fn set_up_crossterm() -> Result<(), RecordError> {
-        if !is_raw_mode_enabled().map_err(RecordError::SetUpTerminal)? {
+        if !is_raw_mode_enabled().map_err(|err| RecordError::SetUpTerminal(err.into()))? {
             crossterm::execute!(io::stdout(), EnterAlternateScreen, EnableMouseCapture)
-                .map_err(RecordError::SetUpTerminal)?;
-            enable_raw_mode().map_err(RecordError::SetUpTerminal)?;
+                .map_err(|err| RecordError::SetUpTerminal(err.into()))?;
+            enable_raw_mode().map_err(|err| RecordError::SetUpTerminal(err.into()))?;
         }
         Ok(())
     }
 
     fn clean_up_crossterm() -> Result<(), RecordError> {
-        if is_raw_mode_enabled().map_err(RecordError::CleanUpTerminal)? {
-            disable_raw_mode().map_err(RecordError::CleanUpTerminal)?;
+        if is_raw_mode_enabled().map_err(|err| RecordError::CleanUpTerminal(err.into()))? {
+            disable_raw_mode().map_err(|err| RecordError::CleanUpTerminal(err.into()))?;
             crossterm::execute!(io::stdout(), LeaveAlternateScreen, DisableMouseCapture)
-                .map_err(RecordError::CleanUpTerminal)?;
+                .map_err(|err| RecordError::CleanUpTerminal(err.into()))?;
         }
         Ok(())
     }
 
     fn run_testing(self, width: usize, height: usize) -> Result<RecordState<'state>, RecordError> {
         let backend = TestBackend::new(width.clamp_into_u16(), height.clamp_into_u16());
-        let mut term = Terminal::new(backend).map_err(RecordError::SetUpTerminal)?;
+        let mut term = Terminal::new(backend).unwrap();
         self.run_inner(&mut term)
     }
 
@@ -596,7 +598,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     &app,
                 ));
             })
-            .map_err(RecordError::RenderFrame)?;
+            .map_err(|err| RecordError::RenderFrame(err.into()))?;
             let drawn_rects = drawn_rects.unwrap();
 
             // Dump debug info. We may need to use information about the
@@ -621,7 +623,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         &debug_app,
                     );
                 })
-                .map_err(RecordError::RenderFrame)?;
+                .map_err(|err| RecordError::RenderFrame(err.into()))?;
             }
 
             let events = if self.pending_events.is_empty() {
@@ -657,7 +659,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         screenshot.set(buffer_view(test_backend.buffer()));
                     }
                     StateUpdate::Redraw => {
-                        term.clear().map_err(RecordError::RenderFrame)?;
+                        term.clear()
+                            .map_err(|err| RecordError::RenderFrame(err.into()))?;
                     }
                     StateUpdate::EnsureSelectionInViewport => {
                         if let Some(scroll_offset_y) =

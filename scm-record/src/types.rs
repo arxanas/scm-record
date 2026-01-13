@@ -2,7 +2,6 @@
 
 use std::borrow::Cow;
 use std::fmt::Display;
-use std::io;
 use std::num::TryFromIntError;
 use std::path::Path;
 
@@ -49,23 +48,23 @@ pub enum RecordError {
     Cancelled,
 
     #[error("failed to set up terminal: {0}")]
-    SetUpTerminal(#[source] io::Error),
+    SetUpTerminal(#[source] Box<dyn std::error::Error>),
 
     #[error("failed to clean up terminal: {0}")]
-    CleanUpTerminal(#[source] io::Error),
+    CleanUpTerminal(#[source] Box<dyn std::error::Error>),
 
     #[error("failed to render new frame: {0}")]
-    RenderFrame(#[source] io::Error),
+    RenderFrame(#[source] Box<dyn std::error::Error>),
 
     #[error("failed to read user input: {0}")]
-    ReadInput(#[source] io::Error),
+    ReadInput(#[source] Box<dyn std::error::Error>),
 
     #[cfg(feature = "serde")]
     #[error("failed to serialize JSON: {0}")]
     SerializeJson(#[source] serde_json::Error),
 
     #[error("failed to wrote file: {0}")]
-    WriteFile(#[source] io::Error),
+    WriteFile(#[source] Box<dyn std::error::Error>),
 
     #[error("{0}")]
     Other(String),

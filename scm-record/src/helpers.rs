@@ -22,13 +22,17 @@ impl RecordInput for CrosstermInput {
 
     fn next_events(&mut self) -> Result<Vec<Event>, RecordError> {
         // Ensure we block for at least one event.
-        let first_event = crossterm::event::read().map_err(RecordError::ReadInput)?;
+        let first_event =
+            crossterm::event::read().map_err(|err| RecordError::ReadInput(err.into()))?;
         let mut events = vec![first_event.into()];
         // Some events, like scrolling, are generated more quickly than
         // we can render the UI. In those cases, batch up all available
         // events and process them before the next render.
-        while crossterm::event::poll(Duration::ZERO).map_err(RecordError::ReadInput)? {
-            let event = crossterm::event::read().map_err(RecordError::ReadInput)?;
+        while crossterm::event::poll(Duration::ZERO)
+            .map_err(|err| RecordError::ReadInput(err.into()))?
+        {
+            let event =
+                crossterm::event::read().map_err(|err| RecordError::ReadInput(err.into()))?;
             events.push(event.into());
         }
         Ok(events)

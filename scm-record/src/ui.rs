@@ -257,7 +257,7 @@ impl From<crossterm::event::Event> for Event {
             }) => Self::FocusNextSameKind,
 
             Event::Key(KeyEvent {
-                code: KeyCode::Left | KeyCode::Char('h'),
+                code: KeyCode::Left | KeyCode::Char('H'),
                 modifiers: KeyModifiers::SHIFT,
                 kind: KeyEventKind::Press,
                 state: _,
@@ -271,7 +271,7 @@ impl From<crossterm::event::Event> for Event {
                 state: _,
             }) => Self::FocusOuter { fold_section: true },
             Event::Key(KeyEvent {
-                code: KeyCode::Right | KeyCode::Char('l'),
+                code: KeyCode::Right | KeyCode::Char('l' | 'L'),
                 // The shift modifier is accepted for continuity with FocusOuter.
                 modifiers: KeyModifiers::NONE | KeyModifiers::SHIFT,
                 kind: KeyEventKind::Press,

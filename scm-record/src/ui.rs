@@ -573,10 +573,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
         self.run_inner(&mut term)
     }
 
-    fn run_inner(
-        mut self,
-        term: &mut Terminal<impl Backend + Any>,
-    ) -> Result<RecordState<'state>, RecordError> {
+    fn run_inner<B>(mut self, term: &mut Terminal<B>) -> Result<RecordState<'state>, RecordError>
+    where
+        B: Backend + Any,
+        B::Error: Send + Sync,
+    {
         self.selection_key = self.first_selection_key();
         let debug = if cfg!(feature = "debug") {
             std::env::var_os(ENV_VAR_DEBUG_UI).is_some()

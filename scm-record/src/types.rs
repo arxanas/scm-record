@@ -48,23 +48,23 @@ pub enum RecordError {
     Cancelled,
 
     #[error("failed to set up terminal: {0}")]
-    SetUpTerminal(#[source] Box<dyn std::error::Error>),
+    SetUpTerminal(#[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[error("failed to clean up terminal: {0}")]
-    CleanUpTerminal(#[source] Box<dyn std::error::Error>),
+    CleanUpTerminal(#[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[error("failed to render new frame: {0}")]
-    RenderFrame(#[source] Box<dyn std::error::Error>),
+    RenderFrame(#[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[error("failed to read user input: {0}")]
-    ReadInput(#[source] Box<dyn std::error::Error>),
+    ReadInput(#[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[cfg(feature = "serde")]
     #[error("failed to serialize JSON: {0}")]
     SerializeJson(#[source] serde_json::Error),
 
     #[error("failed to wrote file: {0}")]
-    WriteFile(#[source] Box<dyn std::error::Error>),
+    WriteFile(#[source] Box<dyn std::error::Error + Send + Sync>),
 
     #[error("{0}")]
     Other(String),

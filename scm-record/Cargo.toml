@@ -5,7 +5,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 name = "scm-record"
 repository = "https://github.com/arxanas/scm-record"
-version = "0.10.0"
+version = "0.10.1"
 
 # Main consumers to consider:
 # - git-branchless: https://github.com/arxanas/git-branchless/blob/master/Cargo.toml

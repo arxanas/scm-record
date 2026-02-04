@@ -18,7 +18,7 @@ You can think of this as an interactive replacement for `git add -p`, or a reimp
 The `scm-record` library is directly integrated into these projects:
 
 - [git-branchless](https://github.com/arxanas/git-branchless): the `git record -i` command lets you interactively select and commit changes.
-- [Jujutsu](https://github.com/martinvonz/jj): as the built-in diff editor; see the [`ui.diff-editor`](https://martinvonz.github.io/jj/latest/config/#editing-diffs) configuration option.
+- [Jujutsu](https://github.com/jj-vcs/jj): as the built-in diff editor; see the [`ui.diff-editor`](https://docs.jj-vcs.dev/latest/config/#editing-diffs) configuration option.
 
 ## Standalone executable
 
@@ -30,7 +30,7 @@ $ cargo install --locked scm-diff-editor
 
 The `scm-diff-editor` executable can be used with these tools:
 
-- [Git](https://git-scm.org): as a [difftool](https://git-scm.com/docs/git-difftool).
+- [Git](https://git-scm.com/): as a [difftool](https://git-scm.com/docs/git-difftool).
 - [Mercurial](https://www.mercurial-scm.org/): via [the `extdiff` extension](https://wiki.mercurial-scm.org/ExtdiffExtension).
 - Likely other source control systems as well.
 
@@ -54,6 +54,6 @@ Here's some projects that don't use `scm-record`, but could benefit from integra
 - [Sapling](https://sapling-scm.com/)
 - [Stacked Git](https://stacked-git.github.io/)
 - [Pijul](https://pijul.org/)
-- [gitoxide/ein](https://github.com/Byron/gitoxide)
-- [gitui](https://github.com/extrawurst/gitui)
+- [gitoxide/ein](https://github.com/GitoxideLabs/gitoxide)
+- [gitui](https://github.com/gitui-org/gitui)
 - [Game of Trees](https://gameoftrees.org/)

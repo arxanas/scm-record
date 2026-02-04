@@ -853,6 +853,13 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         },
                     ],
                 },
+                Menu {
+                    label: Cow::Borrowed("Help (click to open)"),
+                    items: vec![MenuItem {
+                        label: Cow::Borrowed("View keyboard shortcuts"),
+                        event: Event::Help,
+                    }],
+                },
             ],
             expanded_menu_idx: self.expanded_menu_idx,
         }

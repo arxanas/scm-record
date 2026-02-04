@@ -126,30 +126,30 @@ fn test_select_scroll_into_view() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(scroll_to_first_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll_to_first_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  (◐) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
-    "###);
-    insta::assert_snapshot!(scroll_to_second_file, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll_to_second_file, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
     "        2 Some leading text 2⏎                                                  "
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -172,8 +172,8 @@ fn test_toggle_all() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(before, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(before, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -193,9 +193,9 @@ fn test_toggle_all() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(after, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -215,7 +215,7 @@ fn test_toggle_all() -> TestResult {
     "    [ ] - before text 2⏎                                                        "
     "    [ ] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -244,8 +244,8 @@ fn test_toggle_all_uniform() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -255,9 +255,9 @@ fn test_toggle_all_uniform() -> TestResult {
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
-    "###);
-    insta::assert_snapshot!(first_toggle, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(first_toggle, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -267,9 +267,9 @@ fn test_toggle_all_uniform() -> TestResult {
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
-    "###);
-    insta::assert_snapshot!(second_toggle, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(second_toggle, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -279,9 +279,9 @@ fn test_toggle_all_uniform() -> TestResult {
     "    [ ] - before text 1⏎                                                        "
     "    [ ] - before text 2⏎                                                        "
     "    [ ] + after text 1⏎                                                         "
-    "###);
-    insta::assert_snapshot!(third_toggle, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(third_toggle, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -291,7 +291,7 @@ fn test_toggle_all_uniform() -> TestResult {
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -313,8 +313,8 @@ fn test_quit_dialog_size() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     let result = recorder.run();
     assert_matches!(result, Err(RecordError::Cancelled));
-    insta::assert_snapshot!(expect_quit_dialog_to_be_centered, @r###"
-    "[File] [Edit] [Select] [View]                                                                       "
+    insta::assert_snapshot!(expect_quit_dialog_to_be_centered, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                                                "
     "(◐) foo/bar                                                                                      (-)"
     "        ⋮                                                                                           "
     "       18 this is some text⏎                                                                        "
@@ -354,7 +354,7 @@ fn test_quit_dialog_size() -> TestResult {
     "                                                                                                    "
     "                                                                                                    "
     "                                                                                                    "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -390,38 +390,38 @@ fn test_quit_dialog_keyboard_navigation() -> TestResult {
     let state = example_contents();
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
-    insta::assert_snapshot!(expect_q_opens_quit_dialog, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(expect_q_opens_quit_dialog, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_c_does_nothing, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_c_does_nothing, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_q_closes_quit_dialog, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_q_closes_quit_dialog, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_ctrl_c_opens_quit_dialog, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_ctrl_c_opens_quit_dialog, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
+    "#);
     insta::assert_snapshot!(expect_exited, @"<this screenshot was never assigned>");
     Ok(())
 }
@@ -475,62 +475,62 @@ fn test_quit_dialog_buttons() -> TestResult {
     let state = example_contents();
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
-    insta::assert_snapshot!(expect_quit_button_focused_initially, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(expect_quit_button_focused_initially, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_left_focuses_go_back_button, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_left_focuses_go_back_button, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_left_again_does_not_wrap, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_left_again_does_not_wrap, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_back_button_closes_quit_dialog, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_back_button_closes_quit_dialog, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_right_focuses_quit_button, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_right_focuses_quit_button, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_right_again_does_not_wrap, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_right_again_does_not_wrap, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────[Go Back]─(Quit)┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
-    insta::assert_snapshot!(expect_ctrl_left_focuses_go_back_button, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_ctrl_left_focuses_go_back_button, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/b┌Quit───────────────────────────────────────────────────────┐       (-)"
     "        ⋮│You have changes to 2 files. Are you sure you want to quit?│          "
     "       18└───────────────────────────────────────────(Go Back)─[Quit]┘          "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
+    "#);
     insta::assert_snapshot!(expect_exited, @"<this screenshot was never assigned>");
     Ok(())
 }
@@ -599,24 +599,24 @@ fn test_enter_next() -> TestResult {
     );
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
-    insta::assert_snapshot!(first_file_selected, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(first_file_selected, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] foo                                                                      [-]"
     "    [●] - hello⏎                                                                "
     "( ) bar                                                                      (-)"
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] + world⏎                                                                "
     "    [ ] - hello⏎                                                                "
-    "###);
-    insta::assert_snapshot!(second_file_selected, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(second_file_selected, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] foo                                                                      [-]"
     "    [●] - hello⏎                                                                "
     "(●) bar                                                                      (-)"
     "  [●] Section 1/1                                                            [-]"
     "    [●] + world⏎                                                                "
     "    [●] - hello⏎                                                                "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -715,30 +715,30 @@ fn test_file_mode_change() -> TestResult {
         ],
     }
     "###);
-    insta::assert_snapshot!(before_toggle, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(before_toggle, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "[ ] bar                                                                      [-]"
     "  [ ] File mode set to 100755                                                   "
     "[ ] qux                                                                      [-]"
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_toggle, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_toggle, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "[●] bar                                                                      [-]"
     "  (●) File mode set to 100755                                                   "
     "[ ] qux                                                                      [-]"
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(expect_no_crash, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expect_no_crash, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "[●] bar                                                                      [-]"
     "  [●] File mode set to 100755                                                   "
     "( ) qux                                                                      (-)"
     "                                                                                "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -815,8 +815,8 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     );
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "        ⋮                                                                       "
     "        4 start line 4/6⏎                                                       "
@@ -840,11 +840,11 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
     // Unchanged sections are collapsed unless there's at least one changed
     // section expanded before or after them.
-    insta::assert_snapshot!(collapse_bottom, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(collapse_bottom, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [±]"
     "        ⋮                                                                       "
     "        4 start line 4/6⏎                                                       "
@@ -868,9 +868,9 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(collapse_top, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(collapse_top, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [±]"
     "  ( ) Section 1/2                                                            (+)"
     "  [ ] Section 2/2                                                            [+]"
@@ -894,9 +894,9 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(expand_bottom, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(expand_bottom, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [±]"
     "  [ ] Section 1/2                                                            [+]"
     "        7 middle line 1/7⏎                                                      "
@@ -920,7 +920,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -979,8 +979,8 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
     );
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
-    insta::assert_snapshot!(screenshot, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(screenshot, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "        1 start line 1/2⏎                                                       "
     "        2 start line 2/2⏎                                                       "
@@ -1000,7 +1000,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1036,14 +1036,14 @@ fn test_record_binary_file() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] (binary contents: abc123 (123 bytes) -> def456 (456 bytes))               "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     assert_debug_snapshot!(state, @r###"
     RecordState {
@@ -1133,14 +1133,14 @@ fn test_record_binary_file_noop() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] (binary contents: abc123 (123 bytes) -> def456 (456 bytes))               "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     assert_debug_snapshot!(state, @r###"
     RecordState {
@@ -1272,33 +1272,33 @@ fn test_mouse_support() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
-    "###);
-    insta::assert_snapshot!(first_click, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(first_click, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  (◐) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(click_scrolled_item, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_scrolled_item, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  [◐] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    ( ) + after text 2⏎                                                         "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1345,24 +1345,24 @@ fn test_mouse_click_checkbox() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "[ ] bar                                                                      [-]"
     "  [ ] File mode set to 100644                                                   "
-    "###);
-    insta::assert_snapshot!(click_unselected_checkbox, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_unselected_checkbox, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "( ) bar                                                                      (-)"
     "  [ ] File mode set to 100644                                                   "
-    "###);
-    insta::assert_snapshot!(click_selected_checkbox, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_selected_checkbox, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "(●) bar                                                                      (-)"
     "  [●] File mode set to 100644                                                   "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1417,41 +1417,41 @@ fn test_mouse_click_wide_line() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
-    "###);
-    insta::assert_snapshot!(click_line, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_line, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "  [ ] File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    ( ) - foo⏎                                                                  "
-    "###);
-    insta::assert_snapshot!(click_line_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_line_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "  [ ] File mode set to 100644                                                   "
     "  ( ) Section 2/2                                                            (-)"
     "    [ ] - foo⏎                                                                  "
-    "###);
-    insta::assert_snapshot!(click_file_mode_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_file_mode_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "  ( ) File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
-    "###);
-    insta::assert_snapshot!(click_file, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(click_file, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] File mode set to 100644                                                   "
     "  [ ] Section 2/2                                                            [-]"
     "    [ ] - foo⏎                                                                  "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1495,14 +1495,14 @@ fn test_mouse_click_dialog_buttons() -> TestResult {
     )
     "###);
 
-    insta::assert_snapshot!(click_nothing, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(click_nothing, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) foo                                                                      (-)"
     "  [●] Section 1/1                                                            [-]"
     "    [●] - foo⏎                                                                  "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
     insta::assert_snapshot!(click_go_back, @"<this screenshot was never assigned>");
 
     Ok(())
@@ -1529,14 +1529,14 @@ fn test_render_old_path() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(screenshot, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(screenshot, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo => bar                                                               (-)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1566,42 +1566,42 @@ fn test_expand() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_expand, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_expand, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
-    "###);
-    insta::assert_snapshot!(after_collapse, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_collapse, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_expand_mouse, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_expand_mouse, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
     "        2 Some leading text 2⏎                                                  "
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1627,24 +1627,24 @@ fn test_expand_line_noop() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(after_select, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(after_select, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  [◐] Section 1/1                                                            [-]"
     "    (●) - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(after_expand_noop, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_expand_noop, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  [◐] Section 1/1                                                            [-]"
     "    (●) - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1668,24 +1668,24 @@ fn test_expand_scroll_into_view() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(before_expand, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(before_expand, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [+]"
     "(●) baz                                                                      (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_expand, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_expand, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
     "        2 Some leading text 2⏎                                                  "
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1710,24 +1710,24 @@ fn test_collapse_select_ancestor() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(before_collapse, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(before_collapse, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  (◐) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(after_collapse, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_collapse, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1756,42 +1756,42 @@ fn test_focus_inner() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(inner1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(inner1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  (◐) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(inner2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(inner2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  [◐] Section 1/1                                                            [-]"
     "    (●) - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(inner3, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(inner3, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "  [◐] Section 1/1                                                            [-]"
     "    (●) - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1836,51 +1836,51 @@ fn test_focus_outer() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [-]"
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    (●) - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(outer1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [-]"
     "  (●) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(outer2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (-)"
     "        1 Some leading text 1⏎                                                  "
     "        2 Some leading text 2⏎                                                  "
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
-    "###);
-    insta::assert_snapshot!(outer3, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer3, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(outer4, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer4, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -1920,60 +1920,60 @@ fn test_focus_outer_fold_section() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [-]"
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    (●) - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(outer1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [-]"
     "  (●) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(outer2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [±]"
     "  (●) Section 1/1                                                            (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(outer3, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer3, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (±)"
     "  [●] Section 1/1                                                            [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(outer4, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer4, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(outer5, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(outer5, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2009,60 +2009,60 @@ fn test_sticky_header_scroll() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
-    "###);
-    insta::assert_snapshot!(scroll1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
-    "###);
-    insta::assert_snapshot!(scroll2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
-    "###);
-    insta::assert_snapshot!(scroll3, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll3, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
-    "###);
-    insta::assert_snapshot!(scroll4, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll4, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "  [◐] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(scroll5, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(scroll5, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
     "       23 this is some trailing text⏎                                           "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2093,42 +2093,42 @@ fn test_sticky_header_click_expand() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_scroll, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_scroll, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [-]"
     "  (●) Section 1/1                                                            (-)"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(after_click1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (-)"
     "  [●] Section 1/1                                                            [-]"
     "    [●] - before text 1⏎                                                        "
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(after_click2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) baz                                                                      (+)"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2152,24 +2152,24 @@ fn test_scroll_click_no_jump() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
-    "###);
-    insta::assert_snapshot!(after_click, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
     "  [◐] Section 1/1                                                            [-]"
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2195,30 +2195,30 @@ fn test_menu_bar_scroll_into_view() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_scroll1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_scroll1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_scroll2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_scroll2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2250,46 +2250,46 @@ fn test_expand_menu() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_click, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo[Edit message (e)]                                                    (+)"
     "[●] baz[Toggle current (space)]                                              [+]"
     "       [Toggle current and advance (enter)]                                     "
     "       [Invert all items (a)]                                                   "
     "       [Invert all items uniformly (A)]                                         "
-    "###);
-    insta::assert_snapshot!(after_click_different, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click_different, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[Confirm (c)]                                                                (+)"
     "[Quit (q)]                                                                   [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_click_same, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click_same, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_click_menu_bar, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_click_menu_bar, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2319,8 +2319,8 @@ fn test_read_only() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "<◐> foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -2343,9 +2343,9 @@ fn test_read_only() -> TestResult {
     "        5 this is some trailing text⏎                                           "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_toggle_all_ignored, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_toggle_all_ignored, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "<◐> foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -2368,9 +2368,9 @@ fn test_read_only() -> TestResult {
     "        5 this is some trailing text⏎                                           "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_toggle_all_uniform_ignored, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_toggle_all_uniform_ignored, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "<◐> foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -2393,7 +2393,7 @@ fn test_read_only() -> TestResult {
     "        5 this is some trailing text⏎                                           "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
@@ -2540,14 +2540,14 @@ fn test_toggle_unchanged_line() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     let state = recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
     "       20 this is some text⏎                                                    "
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
@@ -2711,14 +2711,14 @@ fn test_max_file_view_width() -> TestResult {
     let recorder = Recorder::new(state.clone(), &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial_wide, @r###"
-    "[File] [Edit] [Select] [View]                                                                                                                                                                                                                             "
+    insta::assert_snapshot!(initial_wide, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                                                                                                                                                                                                      "
     "( ) very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/ve…(-) [ ] very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/very/ve…[+]         "
     "        1 very very very very very very very very very very very very very very very very very very very very very very…                                                                                                                                  "
     "  [ ] Section 1/1                                                                                                    [-]                                                                                                                                  "
     "    [ ] + very very very very very very very very very very very very very very very very very very very very very very…                                                                                                                                  "
     "                                                                                                                                                                                                                                                          "
-    "###);
+    "#);
 
     let initial_narrow = TestingScreenshot::default();
     let mut input = TestingInput::new(
@@ -2776,8 +2776,8 @@ fn test_commit_message_view() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "                                                                                "
     "[Edit message]  •  (no message)                                                 "
     "                                                                                "
@@ -2801,9 +2801,9 @@ fn test_commit_message_view() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(after_edit, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_edit, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "                                                                                "
     "[Edit message]  •  Hello, world!                                                "
     "                                                                                "
@@ -2827,9 +2827,9 @@ fn test_commit_message_view() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(after_scroll1, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_scroll1, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[Edit message]  •  Hello, world!                                                "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
@@ -2853,9 +2853,9 @@ fn test_commit_message_view() -> TestResult {
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(after_scroll2, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(after_scroll2, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -2879,7 +2879,7 @@ fn test_commit_message_view() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -2914,8 +2914,8 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     assert_matches!(recorder.run(), Err(RecordError::Cancelled));
 
-    insta::assert_snapshot!(changed_message_and_files, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(changed_message_and_files, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "                                                                                "
     "[Edit message]  •  hello                                                        "
     "                                                                                "
@@ -2939,9 +2939,9 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
-    insta::assert_snapshot!(changed_message_only, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(changed_message_only, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "                                                                                "
     "[Edit message]  •  hello                                                        "
     "                                                                                "
@@ -2965,7 +2965,7 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -3004,8 +3004,8 @@ fn test_next_prev() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -3025,9 +3025,9 @@ fn test_next_prev() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(to_baz_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3047,9 +3047,9 @@ fn test_next_prev() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_baz_lines, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz_lines, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3069,9 +3069,9 @@ fn test_next_prev() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_baz_line3, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz_line3, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3091,7 +3091,7 @@ fn test_next_prev() -> TestResult {
     "    (●) + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -3136,8 +3136,8 @@ fn test_prev_same_kind() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -3157,9 +3157,9 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(still_initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(still_initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -3179,9 +3179,9 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(to_baz, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3201,9 +3201,9 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_baz_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3223,9 +3223,9 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_bar_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_bar_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3245,9 +3245,9 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_bar_lines, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_bar_lines, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3267,9 +3267,9 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_bar_first_line, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_bar_first_line, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3289,7 +3289,7 @@ fn test_prev_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -3327,8 +3327,8 @@ fn test_next_same_kind() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "       18 this is some text⏎                                                    "
@@ -3348,9 +3348,9 @@ fn test_next_same_kind() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(to_baz, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3370,9 +3370,9 @@ fn test_next_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_baz_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_baz_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3392,9 +3392,9 @@ fn test_next_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(still_baz_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(still_baz_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3414,9 +3414,9 @@ fn test_next_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_bar_section, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_bar_section, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3436,9 +3436,9 @@ fn test_next_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
-    insta::assert_snapshot!(to_bar_lines, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(to_bar_lines, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3458,7 +3458,7 @@ fn test_next_same_kind() -> TestResult {
     "    [●] + after text 1⏎                                                         "
     "    [●] + after text 2⏎                                                         "
     "        5 this is some trailing text⏎                                           "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -3493,8 +3493,8 @@ fn test_prev_next_same_kind_single_section() -> TestResult {
     recorder.run()?;
     // Since we start at the foo/bar file section and there are no other
     // sections, the current section never changes.
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3504,9 +3504,9 @@ fn test_prev_next_same_kind_single_section() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(next, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(next, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3516,9 +3516,9 @@ fn test_prev_next_same_kind_single_section() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
-    insta::assert_snapshot!(prev, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    "#);
+    insta::assert_snapshot!(prev, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[◐] foo/bar                                                                  [-]"
     "       18 this is some text⏎                                                    "
     "       19 this is some text⏎                                                    "
@@ -3528,7 +3528,7 @@ fn test_prev_next_same_kind_single_section() -> TestResult {
     "    [●] - before text 2⏎                                                        "
     "    [●] + after text 1⏎                                                         "
     "    [ ] + after text 2⏎                                                         "
-    "###);
+    "#);
     Ok(())
 }
 
@@ -3557,14 +3557,14 @@ fn test_no_files() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "                                                                                "
     "                    There are no changes to view.                               "
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -3652,8 +3652,8 @@ fn test_tabs_in_files() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "(●) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
     "        8 →   this is some indented text⏎                                       "
@@ -3671,7 +3671,7 @@ fn test_tabs_in_files() -> TestResult {
     "    [●] - →   before text→   5                                                  "
     "    [●] + →   after text→   5                                                   "
     "       16 this is some trailing→   text⏎                                        "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -3723,8 +3723,8 @@ fn test_carriage_return() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] - before text⏎                                                          "
@@ -3732,10 +3732,10 @@ fn test_carriage_return() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
-    insta::assert_snapshot!(focus, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(focus, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "[ ] foo                                                                      [-]"
     "  [ ] Section 1/1                                                            [-]"
     "    ( ) - before text⏎                                                          "
@@ -3743,10 +3743,10 @@ fn test_carriage_return() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
-    insta::assert_snapshot!(unfocus, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(unfocus, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] - before text⏎                                                          "
@@ -3754,7 +3754,7 @@ fn test_carriage_return() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -3787,8 +3787,8 @@ fn test_some_control_characters() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] + nul:␀, bel:␇, esc:␛, del:␡⏎                                           "
@@ -3796,7 +3796,7 @@ fn test_some_control_characters() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }
@@ -3829,8 +3829,8 @@ fn test_non_printing_characters() -> TestResult {
     let recorder = Recorder::new(state, &mut input);
     recorder.run()?;
 
-    insta::assert_snapshot!(initial, @r###"
-    "[File] [Edit] [Select] [View]                                                   "
+    insta::assert_snapshot!(initial, @r#"
+    "[File] [Edit] [Select] [View] [Help (click to open)]                            "
     "( ) foo                                                                      (-)"
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] + zwj:�, zwnj:�                                                         "
@@ -3838,7 +3838,7 @@ fn test_non_printing_characters() -> TestResult {
     "                                                                                "
     "                                                                                "
     "                                                                                "
-    "###);
+    "#);
 
     Ok(())
 }

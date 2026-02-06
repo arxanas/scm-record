@@ -20,4 +20,4 @@ pub use types::{
     ChangeType, Commit, File, FileMode, RecordError, RecordState, Section, SectionChangedLine,
     SelectedChanges, SelectedContents, Tristate,
 };
-pub use ui::{Event, RecordInput, Recorder, TerminalKind, TestingScreenshot};
+pub use ui::{Event, EventTextEntry, RecordInput, Recorder, TerminalKind, TestingScreenshot};

@@ -86,6 +86,12 @@ enum SearchDirection {
     Backward,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+pub enum SearchKind {
+    Line,
+    File,
+}
+
 /// A copy of the contents of the screen at a certain point in time.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct TestingScreenshot {
@@ -157,7 +163,7 @@ pub enum Event {
     ToggleCommitViewMode, // no key binding currently
     EditCommitMessage,
     Help,
-    SearchForward,
+    SearchForward(SearchKind),
     SearchBackward,
     CancelSearch,
     TextEntry(EventTextEntry),
@@ -378,7 +384,13 @@ impl From<crossterm::event::Event> for Event {
                 modifiers: KeyModifiers::CONTROL,
                 kind: KeyEventKind::Press,
                 state: _,
-            }) => Self::SearchForward,
+            }) => Self::SearchForward(SearchKind::Line),
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('t'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::SearchForward(SearchKind::File),
             Event::Key(KeyEvent {
                 code: KeyCode::Char('r'),
                 modifiers: KeyModifiers::CONTROL,
@@ -493,6 +505,7 @@ enum StateUpdate {
         commit_idx: usize,
     },
     Search {
+        new_kind: Option<SearchKind>,
         dir: SearchDirection,
     },
     CloseSearch,
@@ -797,8 +810,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         self.pending_events.push(Event::Redraw);
                         self.edit_commit_message(commit_idx)?;
                     }
-                    StateUpdate::Search { dir } => {
-                        self.open_search(dir);
+                    StateUpdate::Search {
+                        new_kind: kind,
+                        dir,
+                    } => {
+                        self.open_search(kind, dir);
                         if let Some(search_bar) = &self.search_bar {
                             // A new search means a new start position
                             self.search_start_key = self.selection_key;
@@ -949,11 +965,12 @@ impl<'state, 'input> Recorder<'state, 'input> {
         }
     }
 
-    fn make_search_bar(&self, dir: SearchDirection) -> SearchBar {
+    fn make_search_bar(&self, kind: SearchKind, dir: SearchDirection) -> SearchBar {
         SearchBar {
             // p: std::default::Default::default(),
             query: String::new(),
             dir,
+            kind,
         }
     }
 
@@ -1333,11 +1350,13 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 commit_idx: self.focused_commit_idx,
             },
 
-            (None, Event::SearchForward) => StateUpdate::Search {
+            (None, Event::SearchForward(kind)) => StateUpdate::Search {
+                new_kind: Some(kind),
                 dir: SearchDirection::Forward,
             },
-            (_, Event::SearchForward) => StateUpdate::None,
+            (_, Event::SearchForward(_)) => StateUpdate::None,
             (None, Event::SearchBackward) => StateUpdate::Search {
+                new_kind: None,
                 dir: SearchDirection::Backward,
             },
             (_, Event::SearchBackward) => StateUpdate::None,
@@ -1712,6 +1731,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         &self,
         start: &SelectionKey,
         substr: &str,
+        kind: SearchKind,
         dir: SearchDirection,
         skip_current_line: bool,
     ) -> SelectionKey {
@@ -1722,11 +1742,15 @@ impl<'state, 'input> Recorder<'state, 'input> {
             } else {
                 Box::new(keys.iter().rev())
             };
+        let filter_fn = match kind {
+            SearchKind::Line => |k: &SelectionKey| matches!(k, SelectionKey::Line(_)),
+            SearchKind::File => |k: &SelectionKey| matches!(k, SelectionKey::File(_)),
+        };
         let key = iterate_keys
             // Find the current selection
             .skip_while(|&k| k != start)
             // Only consider line keys
-            .filter(|&&k| matches!(k, SelectionKey::Line(_)))
+            .filter(|&k| filter_fn(k))
             .skip(if skip_current_line { 1 } else { 0 })
             .find(|key| match key {
                 SelectionKey::Line(LineKey {
@@ -1743,6 +1767,19 @@ impl<'state, 'input> Recorder<'state, 'input> {
                     } else {
                         false
                     }
+                }
+                SelectionKey::File(FileKey {
+                    commit_idx: _,
+                    file_idx,
+                }) => {
+                    let file = &self.state.files[*file_idx];
+                    file.path
+                        .components()
+                        .any(|c| c.as_os_str().to_string_lossy().contains(substr))
+                        || file.old_path.as_ref().is_some_and(|p| {
+                            p.components()
+                                .any(|c| c.as_os_str().to_string_lossy().contains(substr))
+                        })
                 }
                 _ => false,
             })
@@ -2284,12 +2321,14 @@ impl<'state, 'input> Recorder<'state, 'input> {
         Ok(())
     }
 
-    fn open_search(&mut self, dir: SearchDirection) {
+    fn open_search(&mut self, new_kind: Option<SearchKind>, dir: SearchDirection) {
         if let Some(search_bar) = &mut self.search_bar {
             search_bar.dir = dir;
+            search_bar.kind = new_kind.unwrap_or(search_bar.kind);
         } else {
             self.input.enable_input_entry();
-            self.search_bar = Some(self.make_search_bar(dir));
+            let kind = new_kind.unwrap_or(SearchKind::Line);
+            self.search_bar = Some(self.make_search_bar(kind, dir));
         }
     }
 
@@ -2303,6 +2342,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             self.selection_key = self.advance_to_substring_match(
                 &self.search_start_key,
                 &search_bar.query,
+                search_bar.kind,
                 search_bar.dir,
                 skip_current_line,
             );
@@ -2962,6 +3002,7 @@ struct SearchBar {
     /// should this be a ref? Cow?
     query: String,
     dir: SearchDirection,
+    kind: SearchKind,
 }
 
 impl SearchBar {

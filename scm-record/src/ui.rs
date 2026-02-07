@@ -643,12 +643,24 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 match self.handle_event(event, term_height, &drawn_rects, &menu_bar)? {
                     StateUpdate::None => {}
                     StateUpdate::SetQuitDialog(quit_dialog) => {
+                        if quit_dialog.is_some() {
+                            self.help_dialog = None;
+                            self.about_dialog = None;
+                        }
                         self.quit_dialog = quit_dialog;
                     }
                     StateUpdate::SetHelpDialog(help_dialog) => {
+                        if help_dialog.is_some() {
+                            self.quit_dialog = None;
+                            self.about_dialog = None;
+                        }
                         self.help_dialog = help_dialog;
                     }
                     StateUpdate::SetAboutDialog(about_dialog) => {
+                        if about_dialog.is_some() {
+                            self.quit_dialog = None;
+                            self.help_dialog = None;
+                        }
                         self.about_dialog = about_dialog;
                     }
                     StateUpdate::QuitAccept => {

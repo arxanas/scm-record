@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- (#148) The help dialog is accessible with the mouse via the new "Help" menu item.
+
 ### Fixed
 
 - (#112): Fixed shift+h / shift+l, used to select outer / inner item without folding

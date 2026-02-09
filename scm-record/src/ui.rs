@@ -151,6 +151,7 @@ pub enum Event {
     ToggleCommitViewMode, // no key binding currently
     EditCommitMessage,
     Help,
+    About,
 }
 
 impl From<crossterm::event::Event> for Event {
@@ -416,6 +417,7 @@ enum StateUpdate {
     QuitAccept,
     QuitCancel,
     SetHelpDialog(Option<HelpDialog>),
+    SetAboutDialog(Option<AboutDialog>),
     TakeScreenshot(TestingScreenshot),
     Redraw,
     EnsureSelectionInViewport,
@@ -468,6 +470,7 @@ pub struct Recorder<'state, 'input> {
     focused_commit_idx: usize,
     quit_dialog: Option<QuitDialog>,
     help_dialog: Option<HelpDialog>,
+    about_dialog: Option<AboutDialog>,
     scroll_offset_y: isize,
 }
 
@@ -494,6 +497,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             focused_commit_idx: 0,
             quit_dialog: None,
             help_dialog: None,
+            about_dialog: None,
             scroll_offset_y: 0,
         };
         recorder.expand_initial_items();
@@ -639,10 +643,25 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 match self.handle_event(event, term_height, &drawn_rects, &menu_bar)? {
                     StateUpdate::None => {}
                     StateUpdate::SetQuitDialog(quit_dialog) => {
+                        if quit_dialog.is_some() {
+                            self.help_dialog = None;
+                            self.about_dialog = None;
+                        }
                         self.quit_dialog = quit_dialog;
                     }
                     StateUpdate::SetHelpDialog(help_dialog) => {
+                        if help_dialog.is_some() {
+                            self.quit_dialog = None;
+                            self.about_dialog = None;
+                        }
                         self.help_dialog = help_dialog;
+                    }
+                    StateUpdate::SetAboutDialog(about_dialog) => {
+                        if about_dialog.is_some() {
+                            self.quit_dialog = None;
+                            self.help_dialog = None;
+                        }
+                        self.about_dialog = about_dialog;
                     }
                     StateUpdate::QuitAccept => {
                         if self.help_dialog.is_some() {
@@ -853,6 +872,19 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         },
                     ],
                 },
+                Menu {
+                    label: Cow::Borrowed("Help (click to open)"),
+                    items: vec![
+                        MenuItem {
+                            label: Cow::Borrowed("View keyboard shortcuts"),
+                            event: Event::Help,
+                        },
+                        MenuItem {
+                            label: Cow::Borrowed("About"),
+                            event: Event::About,
+                        },
+                    ],
+                },
             ],
             expanded_menu_idx: self.expanded_menu_idx,
         }
@@ -902,6 +934,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             commit_views,
             quit_dialog: self.quit_dialog.clone(),
             help_dialog: self.help_dialog.clone(),
+            about_dialog: self.about_dialog.clone(),
         }
     }
 
@@ -1078,6 +1111,18 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 StateUpdate::SetHelpDialog(None)
             }
             (_, Event::Help) => StateUpdate::SetHelpDialog(Some(HelpDialog())),
+            (
+                _,
+                Event::About
+                | Event::QuitEscape
+                | Event::QuitCancel
+                | Event::ToggleItem
+                | Event::ToggleItemAndAdvance,
+            ) if self.about_dialog.is_some() => {
+                // there is only one button in the about dialog, so 'toggle*' means "click close"
+                StateUpdate::SetAboutDialog(None)
+            }
+            (_, Event::About) => StateUpdate::SetAboutDialog(Some(AboutDialog())),
 
             // Confirm the changes.
             (None, Event::QuitAccept) => StateUpdate::QuitAccept,
@@ -1702,6 +1747,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         | ComponentId::ExpandBox(_)
                         | ComponentId::HelpDialog
                         | ComponentId::HelpDialogQuitButton
+                        | ComponentId::AboutDialog
+                        | ComponentId::AboutDialogQuitButton
                         | ComponentId::QuitDialog
                         | ComponentId::QuitDialogButton(_) => true,
                     }
@@ -1765,6 +1812,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
             ComponentId::QuitDialogButton(QuitDialogButtonId::Quit) => StateUpdate::QuitCancel,
             ComponentId::HelpDialog => StateUpdate::None,
             ComponentId::HelpDialogQuitButton => StateUpdate::SetHelpDialog(None),
+            ComponentId::AboutDialog => StateUpdate::None,
+            ComponentId::AboutDialogQuitButton => StateUpdate::SetAboutDialog(None),
         }
     }
 
@@ -2323,6 +2372,8 @@ enum ComponentId {
     QuitDialogButton(QuitDialogButtonId),
     HelpDialog,
     HelpDialogQuitButton,
+    AboutDialog,
+    AboutDialogQuitButton,
 }
 
 #[derive(Clone, Debug)]
@@ -2412,6 +2463,7 @@ struct AppView<'a> {
     commit_views: Vec<CommitView<'a>>,
     quit_dialog: Option<QuitDialog>,
     help_dialog: Option<HelpDialog>,
+    about_dialog: Option<AboutDialog>,
 }
 
 impl Component for AppView<'_> {
@@ -2429,6 +2481,7 @@ impl Component for AppView<'_> {
             commit_views,
             quit_dialog,
             help_dialog,
+            about_dialog,
         } = self;
 
         if let Some(debug_info) = debug_info {
@@ -2481,6 +2534,9 @@ impl Component for AppView<'_> {
         }
         if let Some(help_dialog) = help_dialog {
             viewport.draw_component(0, 0, help_dialog);
+        }
+        if let Some(about_dialog) = about_dialog {
+            viewport.draw_component(0, 0, about_dialog);
         }
     }
 }
@@ -3586,6 +3642,43 @@ impl Component for HelpDialog {
 
         let quit_button = Button {
             id: ComponentId::HelpDialogQuitButton,
+            label: Cow::Borrowed("Close"),
+            style: Style::default(),
+            is_focused: true,
+        };
+
+        let buttons = [quit_button];
+        let dialog = Dialog {
+            id: self.id(),
+            title: Cow::Borrowed(title),
+            body: Cow::Borrowed(&body),
+            buttons: &buttons,
+        };
+        viewport.draw_component(0, 0, &dialog);
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+struct AboutDialog();
+
+impl Component for AboutDialog {
+    type Id = ComponentId;
+
+    fn id(&self) -> Self::Id {
+        ComponentId::AboutDialog
+    }
+
+    fn draw(&self, viewport: &mut Viewport<Self::Id>, _: isize, _: isize) {
+        let title = "About";
+        let body = Text::from(vec![
+            Line::from("This UI is part of the `scm-record` library,"),
+            Line::from("which provides the `scm-diff-editor` executable."),
+            Line::from(""),
+            Line::from("https://github.com/arxanas/scm-record"),
+        ]);
+
+        let quit_button = Button {
+            id: ComponentId::AboutDialogQuitButton,
             label: Cow::Borrowed("Close"),
             style: Style::default(),
             is_focused: true,

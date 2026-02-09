@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - ReleaseDate
 
+### Added
+
+- (#113): shift+j/shift+k and shift+down/shift+up added as keyboard shortcuts to select next/prev of the same type
+
 ### Fixed
 
-- (#112): Fixed shift+h / shift+l, used to select outer / inner item without folding
+- (#112): Fixed shift+h/shift+l, used to select outer/inner item without folding
 
 ## [0.10.1] - 2026-01-22
 

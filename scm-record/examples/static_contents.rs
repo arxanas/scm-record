@@ -95,7 +95,7 @@ fn main() {
         commits: Default::default(),
         files,
     };
-    let mut input = CrosstermInput;
+    let mut input = CrosstermInput::default();
     let recorder = Recorder::new(record_state, &mut input);
     let result = recorder.run();
     match result {

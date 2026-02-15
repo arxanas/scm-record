@@ -92,6 +92,7 @@ fn main() {
     ];
     let record_state = RecordState {
         is_read_only: false,
+        status_message: Some("Select changes to commit".to_string()),
         commits: Default::default(),
         files,
     };
@@ -102,6 +103,7 @@ fn main() {
         Ok(result) => {
             let RecordState {
                 is_read_only: _,
+                status_message: _,
                 commits: _,
                 files,
             } = result;

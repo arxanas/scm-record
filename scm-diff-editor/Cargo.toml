@@ -16,7 +16,7 @@ rust-version = "1.85"
 clap = { version = "4.5", features = ["derive"] }
 diffy = "0.4"
 scm-record = { version = "0.10", path = "../scm-record" }
-sha1 = "0.10"
+sha1 = "0.11"
 thiserror = "2.0.3"
 tracing = "0.1.40"
 walkdir = "2.5"

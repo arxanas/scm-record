@@ -13,11 +13,13 @@ fn bench_record(c: &mut Criterion) {
             line: Cow::Borrowed("foo"),
             is_checked: false,
             change_type: ChangeType::Removed,
+            group: None,
         };
         let after_line = SectionChangedLine {
             line: Cow::Borrowed("foo"),
             is_checked: false,
             change_type: ChangeType::Added,
+            group: None,
         };
         let record_state = RecordState {
             is_read_only: false,

@@ -243,18 +243,34 @@ impl From<crossterm::event::Event> for Event {
                 state: _,
             }) => Self::FocusNext,
 
-            Event::Key(KeyEvent {
-                code: KeyCode::PageUp,
-                modifiers: KeyModifiers::NONE,
-                kind: KeyEventKind::Press,
-                state: _,
-            }) => Self::FocusPrevSameKind,
-            Event::Key(KeyEvent {
-                code: KeyCode::PageDown,
-                modifiers: KeyModifiers::NONE,
-                kind: KeyEventKind::Press,
-                state: _,
-            }) => Self::FocusNextSameKind,
+            Event::Key(
+                KeyEvent {
+                    code: KeyCode::PageUp,
+                    modifiers: KeyModifiers::NONE,
+                    kind: KeyEventKind::Press,
+                    state: _,
+                }
+                | KeyEvent {
+                    code: KeyCode::Up | KeyCode::Char('K'),
+                    modifiers: KeyModifiers::SHIFT,
+                    kind: KeyEventKind::Press,
+                    state: _,
+                },
+            ) => Self::FocusPrevSameKind,
+            Event::Key(
+                KeyEvent {
+                    code: KeyCode::PageDown,
+                    modifiers: KeyModifiers::NONE,
+                    kind: KeyEventKind::Press,
+                    state: _,
+                }
+                | KeyEvent {
+                    code: KeyCode::Down | KeyCode::Char('J'),
+                    modifiers: KeyModifiers::SHIFT,
+                    kind: KeyEventKind::Press,
+                    state: _,
+                },
+            ) => Self::FocusNextSameKind,
 
             Event::Key(KeyEvent {
                 code: KeyCode::Left | KeyCode::Char('H'),
@@ -791,11 +807,15 @@ impl<'state, 'input> Recorder<'state, 'input> {
                             event: Event::FocusNext,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Previous item of the same kind (page-up)"),
+                            label: Cow::Borrowed(
+                                "Previous item of the same kind (shift-up, shift-k, page-up)",
+                            ),
                             event: Event::FocusPrevSameKind,
                         },
                         MenuItem {
-                            label: Cow::Borrowed("Next item of the same kind (page-down)"),
+                            label: Cow::Borrowed(
+                                "Next item of the same kind (shift-down, shift-j, page-down)",
+                            ),
                             event: Event::FocusNextSameKind,
                         },
                         MenuItem {
@@ -3554,7 +3574,7 @@ impl Component for HelpDialog {
             Line::from(
                 "    Quit/Cancel             q           Next/Prev               j/k or ↓/↑",
             ),
-            Line::from("    Confirm changes         c           Next/Prev of same type  PgDn/PgUp"),
+            Line::from("    Confirm changes         c           Next/Prev of same type  J/K or Shift-↓/Shift-↑"),
             Line::from("    Force quit              ^c          Move out & fold         h or ←"),
             Line::from(
                 "                                        Move out & don't fold   H or Shift-←    ",

@@ -80,6 +80,18 @@ impl Default for SelectionKey {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+enum SearchDirection {
+    Forward,
+    Backward,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+pub enum SearchKind {
+    Line,
+    File,
+}
+
 /// A copy of the contents of the screen at a certain point in time.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct TestingScreenshot {
@@ -151,6 +163,17 @@ pub enum Event {
     ToggleCommitViewMode, // no key binding currently
     EditCommitMessage,
     Help,
+    SearchForward(SearchKind),
+    SearchBackward,
+    CancelSearch,
+    TextEntry(EventTextEntry),
+}
+
+#[allow(missing_docs)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EventTextEntry {
+    Char(char),
+    Backspace,
 }
 
 impl From<crossterm::event::Event> for Event {
@@ -298,6 +321,14 @@ impl From<crossterm::event::Event> for Event {
                 state: _,
             }) => Self::ToggleItem,
 
+            // This works in search mode too
+            Event::Key(KeyEvent {
+                code: KeyCode::Char(' '),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::ToggleItem,
+
             Event::Key(KeyEvent {
                 code: KeyCode::Enter,
                 modifiers: KeyModifiers::NONE,
@@ -348,6 +379,31 @@ impl From<crossterm::event::Event> for Event {
                 column: column.into(),
             },
 
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('s'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::SearchForward(SearchKind::Line),
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('t'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::SearchForward(SearchKind::File),
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('r'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::SearchBackward,
+            Event::Key(KeyEvent {
+                code: KeyCode::Char('g'),
+                modifiers: KeyModifiers::CONTROL,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::CancelSearch,
+
             _event => Self::None,
         }
     }
@@ -382,6 +438,14 @@ pub trait RecordInput {
     /// This function will only be invoked if one of the provided `Commit`s had
     /// a non-`None` commit message.
     fn edit_commit_message(&mut self, message: &str) -> Result<String, RecordError>;
+
+    /// Enable input entry mode.
+    ///
+    /// In this mode, characters are passed through as Entry events.
+    fn enable_input_entry(&mut self);
+
+    /// Disable input entry mode.
+    fn disable_input_entry(&mut self);
 }
 
 /// Copied from internal implementation of `tui`.
@@ -440,6 +504,14 @@ enum StateUpdate {
     EditCommitMessage {
         commit_idx: usize,
     },
+    Search {
+        new_kind: Option<SearchKind>,
+        dir: SearchDirection,
+    },
+    CloseSearch,
+    SearchTextEntry {
+        entry: EventTextEntry,
+    },
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -469,6 +541,8 @@ pub struct Recorder<'state, 'input> {
     quit_dialog: Option<QuitDialog>,
     help_dialog: Option<HelpDialog>,
     scroll_offset_y: isize,
+    search_bar: Option<SearchBar>,
+    search_start_key: SelectionKey,
 }
 
 impl<'state, 'input> Recorder<'state, 'input> {
@@ -495,6 +569,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
             quit_dialog: None,
             help_dialog: None,
             scroll_offset_y: 0,
+            search_bar: None,
+            search_start_key: SelectionKey::None,
         };
         recorder.expand_initial_items();
         recorder
@@ -587,8 +663,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
 
         'outer: loop {
             let menu_bar = self.make_menu_bar();
+            // let search_bar = self.make_search_bar();
             let app = self.make_app(menu_bar.clone(), None);
             let term_height = usize::from(term.get_frame().area().height);
+            // TODO: Fix height. This compensates for the search bar.
+            let term_height = term_height - if self.search_bar.is_some() { 1 } else { 0 };
 
             let mut drawn_rects: Option<DrawnRects<ComponentId>> = None;
             term.draw(|frame| {
@@ -731,6 +810,34 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         self.pending_events.push(Event::Redraw);
                         self.edit_commit_message(commit_idx)?;
                     }
+                    StateUpdate::Search {
+                        new_kind: kind,
+                        dir,
+                    } => {
+                        self.open_search(kind, dir);
+                        if let Some(search_bar) = &self.search_bar {
+                            // A new search means a new start position
+                            self.search_start_key = self.selection_key;
+                            if !search_bar.query.is_empty() {
+                                self.search_next(true);
+                                // Search will continue from where the user last
+                                // initiated a new search
+                                self.search_start_key = self.selection_key;
+                            }
+                        }
+                    }
+                    StateUpdate::CloseSearch => {
+                        self.close_search();
+                    }
+                    StateUpdate::SearchTextEntry { entry } => {
+                        if let Some(search_bar) = &mut self.search_bar {
+                            match entry {
+                                EventTextEntry::Char(c) => search_bar.push_char(c),
+                                EventTextEntry::Backspace => search_bar.pop_char(),
+                            };
+                            self.search_next(false);
+                        }
+                    }
                 }
             }
         }
@@ -858,6 +965,15 @@ impl<'state, 'input> Recorder<'state, 'input> {
         }
     }
 
+    fn make_search_bar(&self, kind: SearchKind, dir: SearchDirection) -> SearchBar {
+        SearchBar {
+            // p: std::default::Default::default(),
+            query: String::new(),
+            dir,
+            kind,
+        }
+    }
+
     fn make_app(
         &'state self,
         menu_bar: MenuBar<'static>,
@@ -898,6 +1014,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         AppView {
             debug_info: None,
             menu_bar,
+            search_bar: self.search_bar.clone(),
             commit_view_mode: self.commit_view_mode,
             commit_views,
             quit_dialog: self.quit_dialog.clone(),
@@ -1232,6 +1349,25 @@ impl<'state, 'input> Recorder<'state, 'input> {
             (None, Event::EditCommitMessage) => StateUpdate::EditCommitMessage {
                 commit_idx: self.focused_commit_idx,
             },
+
+            (None, Event::SearchForward(kind)) => StateUpdate::Search {
+                new_kind: Some(kind),
+                dir: SearchDirection::Forward,
+            },
+            (_, Event::SearchForward(_)) => StateUpdate::None,
+            (None, Event::SearchBackward) => StateUpdate::Search {
+                new_kind: None,
+                dir: SearchDirection::Backward,
+            },
+            (_, Event::SearchBackward) => StateUpdate::None,
+            (None, Event::CancelSearch | Event::QuitEscape) if self.search_bar.is_some() => {
+                StateUpdate::CloseSearch
+            }
+            (_, Event::CancelSearch) => StateUpdate::None,
+            (None, Event::TextEntry(entry)) if self.search_bar.is_some() => {
+                StateUpdate::SearchTextEntry { entry }
+            }
+            (_, Event::TextEntry { .. }) => StateUpdate::None,
 
             (_, Event::Click { row, column }) => {
                 let component_id = self.find_component_at(drawn_rects, row, column);
@@ -1586,6 +1722,71 @@ impl<'state, 'input> Recorder<'state, 'input> {
             .unwrap_or(self.selection_key)
     }
 
+    /// Finds the next line matching the given substring - including the current
+    /// line.
+    ///
+    /// Warning: The application will crash/exit if trying to select a key that
+    /// is not visible, so be sure to expand its ancestors first.
+    fn advance_to_substring_match(
+        &self,
+        start: &SelectionKey,
+        substr: &str,
+        kind: SearchKind,
+        dir: SearchDirection,
+        skip_current_line: bool,
+    ) -> SelectionKey {
+        let keys = self.all_selection_keys();
+        let iterate_keys: Box<dyn DoubleEndedIterator<Item = _>> =
+            if dir == SearchDirection::Forward {
+                Box::new(keys.iter())
+            } else {
+                Box::new(keys.iter().rev())
+            };
+        let filter_fn = match kind {
+            SearchKind::Line => |k: &SelectionKey| matches!(k, SelectionKey::Line(_)),
+            SearchKind::File => |k: &SelectionKey| matches!(k, SelectionKey::File(_)),
+        };
+        let key = iterate_keys
+            // Find the current selection
+            .skip_while(|&k| k != start)
+            // Only consider line keys
+            .filter(|&k| filter_fn(k))
+            .skip(if skip_current_line { 1 } else { 0 })
+            .find(|key| match key {
+                SelectionKey::Line(LineKey {
+                    commit_idx: _,
+                    file_idx,
+                    section_idx,
+                    line_idx,
+                }) => {
+                    let section = &self.state.files[*file_idx].sections[*section_idx];
+                    if let Section::Changed { lines } = section {
+                        lines
+                            .get(*line_idx)
+                            .is_some_and(|line| line.line.contains(substr))
+                    } else {
+                        false
+                    }
+                }
+                SelectionKey::File(FileKey {
+                    commit_idx: _,
+                    file_idx,
+                }) => {
+                    let file = &self.state.files[*file_idx];
+                    file.path
+                        .components()
+                        .any(|c| c.as_os_str().to_string_lossy().contains(substr))
+                        || file.old_path.as_ref().is_some_and(|p| {
+                            p.components()
+                                .any(|c| c.as_os_str().to_string_lossy().contains(substr))
+                        })
+                }
+                _ => false,
+            })
+            .unwrap_or(&self.selection_key);
+        *key
+    }
+
     fn selection_key_y(
         &self,
         drawn_rects: &DrawnRects<ComponentId>,
@@ -1695,6 +1896,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         ComponentId::MenuBar
                         | ComponentId::MenuItem(_)
                         | ComponentId::Menu(_)
+                        | ComponentId::SearchBar
                         | ComponentId::CommitEditMessageButton(_)
                         | ComponentId::FileViewHeader(_)
                         | ComponentId::SelectableItem(_)
@@ -1728,6 +1930,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             ComponentId::MenuItem(item_idx) => {
                 StateUpdate::ClickMenuItem(self.get_menu_item_event(menu_bar, item_idx))
             }
+            ComponentId::SearchBar => StateUpdate::None,
             ComponentId::CommitEditMessageButton(commit_idx) => {
                 StateUpdate::EditCommitMessage { commit_idx }
             }
@@ -2118,6 +2321,37 @@ impl<'state, 'input> Recorder<'state, 'input> {
         Ok(())
     }
 
+    fn open_search(&mut self, new_kind: Option<SearchKind>, dir: SearchDirection) {
+        if let Some(search_bar) = &mut self.search_bar {
+            search_bar.dir = dir;
+            search_bar.kind = new_kind.unwrap_or(search_bar.kind);
+        } else {
+            self.input.enable_input_entry();
+            let kind = new_kind.unwrap_or(SearchKind::Line);
+            self.search_bar = Some(self.make_search_bar(kind, dir));
+        }
+    }
+
+    fn close_search(&mut self) {
+        self.input.disable_input_entry();
+        self.search_bar = None;
+    }
+
+    fn search_next(&mut self, skip_current_line: bool) {
+        if let Some(search_bar) = &self.search_bar {
+            self.selection_key = self.advance_to_substring_match(
+                &self.search_start_key,
+                &search_bar.query,
+                search_bar.kind,
+                search_bar.dir,
+                skip_current_line,
+            );
+
+            self.expand_item_ancestors(self.selection_key);
+            self.pending_events.push(Event::EnsureSelectionInViewport);
+        }
+    }
+
     fn file(&self, file_key: FileKey) -> Result<&File<'_>, RecordError> {
         let FileKey {
             commit_idx: _,
@@ -2323,6 +2557,7 @@ enum ComponentId {
     QuitDialogButton(QuitDialogButtonId),
     HelpDialog,
     HelpDialogQuitButton,
+    SearchBar,
 }
 
 #[derive(Clone, Debug)]
@@ -2408,6 +2643,7 @@ struct AppDebugInfo {
 struct AppView<'a> {
     debug_info: Option<AppDebugInfo>,
     menu_bar: MenuBar<'a>,
+    search_bar: Option<SearchBar>,
     commit_view_mode: CommitViewMode,
     commit_views: Vec<CommitView<'a>>,
     quit_dialog: Option<QuitDialog>,
@@ -2425,6 +2661,7 @@ impl Component for AppView<'_> {
         let Self {
             debug_info,
             menu_bar,
+            search_bar,
             commit_view_mode,
             commit_views,
             quit_dialog,
@@ -2438,6 +2675,7 @@ impl Component for AppView<'_> {
         let viewport_rect = viewport.mask_rect();
 
         let menu_bar_height = 1usize;
+        let search_bar_height = if search_bar.is_some() { 1 } else { 0 };
         let commit_view_width = match commit_view_mode {
             CommitViewMode::Inline => viewport.rect().width,
             CommitViewMode::Adjacent => {
@@ -2446,11 +2684,12 @@ impl Component for AppView<'_> {
                     .min(viewport.rect().width.saturating_sub(CommitView::MARGIN) / 2)
             }
         };
+        let commit_view_height = viewport_rect.height - menu_bar_height - search_bar_height - 20;
         let commit_views_mask = Mask {
             x: viewport_rect.x,
             y: viewport_rect.y + menu_bar_height.unwrap_isize(),
             width: Some(viewport_rect.width),
-            height: None,
+            height: Some(commit_view_height),
         };
         viewport.with_mask(commit_views_mask, |viewport| {
             let mut commit_view_x = 0;
@@ -2475,6 +2714,13 @@ impl Component for AppView<'_> {
         });
 
         viewport.draw_component(x, viewport_rect.y, menu_bar);
+        if let Some(search_bar) = search_bar {
+            viewport.draw_component(
+                x,
+                viewport_rect.y + viewport_rect.height.unwrap_isize() - 1,
+                search_bar,
+            );
+        }
 
         if let Some(quit_dialog) = quit_dialog {
             viewport.draw_component(0, 0, quit_dialog);
@@ -2748,6 +2994,53 @@ impl Component for MenuBar<'_> {
             }
             x += rect.width.unwrap_isize() + 1;
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct SearchBar {
+    /// should this be a ref? Cow?
+    query: String,
+    dir: SearchDirection,
+    kind: SearchKind,
+}
+
+impl SearchBar {
+    fn push_char(&mut self, c: char) {
+        self.query.push(c);
+    }
+
+    fn pop_char(&mut self) {
+        self.query.pop();
+    }
+}
+
+impl Component for SearchBar {
+    type Id = ComponentId;
+
+    fn id(&self) -> Self::Id {
+        ComponentId::SearchBar
+    }
+
+    fn draw(&self, viewport: &mut Viewport<Self::Id>, x: isize, y: isize) {
+        let rect = Rect {
+            x,
+            y,
+            width: viewport.mask_rect().width,
+            height: 1,
+        };
+        viewport.draw_blank(rect);
+        highlight_rect(viewport, rect);
+        // let input: tui_input::Input = tui_input::Input::default();
+        // viewport.draw_component(x, y, input.)
+        let dir_char = if self.dir == SearchDirection::Forward {
+            '↓'
+        } else {
+            '↑'
+        };
+        viewport.draw_text(x, y, format!("Search {dir_char}: {}", self.query));
+        let help = "(Esc or ctrl-g to cancel)";
+        viewport.draw_text((rect.width - help.len()).unwrap_isize() - x, y, help);
     }
 }
 

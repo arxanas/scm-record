@@ -24,7 +24,7 @@ fn main() {
     let json_filename = args.get(1).expect("expected JSON dump as first argument");
     let record_state: RecordState = load_state(json_filename);
 
-    let mut input = CrosstermInput;
+    let mut input = CrosstermInput::default();
     let recorder = Recorder::new(record_state, &mut input);
     let result = recorder.run();
     match result {

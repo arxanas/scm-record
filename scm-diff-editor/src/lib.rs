@@ -558,7 +558,7 @@ pub fn run(opts: Opts) -> Result<()> {
         commits: Default::default(),
         files,
     };
-    let mut input = CrosstermInput;
+    let mut input = CrosstermInput::default();
     let recorder = Recorder::new(state, &mut input);
     match recorder.run() {
         Ok(state) => {

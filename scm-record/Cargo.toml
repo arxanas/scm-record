@@ -31,6 +31,7 @@ unicode-width = "0.2"
 # Features: serde
 serde = { version = "1.0", features = ["serde_derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
+tui-input = "0.15.0"
 
 [dev-dependencies]
 assert_matches = "1.5"

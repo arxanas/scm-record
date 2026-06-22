@@ -1521,14 +1521,19 @@ impl<'state, 'input> Recorder<'state, 'input> {
             selection_key @ SelectionKey::File(_) => {
                 StateUpdate::SetExpandItem(selection_key, false)
             }
-            selection_key @ SelectionKey::Section(SectionKey {
-                commit_idx,
-                file_idx,
-                section_idx: _,
-            }) => {
+            selection_key @ SelectionKey::Section(
+                section_key @ SectionKey {
+                    commit_idx,
+                    file_idx,
+                    section_idx: _,
+                },
+            ) => {
                 // If folding is requested and the selection is expanded,
                 // collapse it. Otherwise, move the selection to the file.
-                if fold_section && self.expanded_items.contains(&selection_key) {
+                if fold_section
+                    && matches!(self.section(section_key), Ok(Section::Changed { .. }))
+                    && self.expanded_items.contains(&selection_key)
+                {
                     StateUpdate::SetExpandItem(selection_key, false)
                 } else {
                     StateUpdate::SelectItem {

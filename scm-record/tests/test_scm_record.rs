@@ -1650,6 +1650,55 @@ fn test_expand_line_noop() -> TestResult {
 }
 
 #[test]
+fn test_focus_outer_from_file_mode_section_selects_file() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo")),
+            file_mode: FileMode::FILE_DEFAULT,
+            sections: vec![Section::FileMode {
+                is_checked: false,
+                mode: FileMode::Unix(0o600),
+            }],
+        }],
+    };
+    let section_selected = TestingScreenshot::default();
+    let file_selected = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        5,
+        [
+            Event::FocusInner,
+            section_selected.event(),
+            Event::FocusOuter { fold_section: true },
+            file_selected.event(),
+            Event::QuitAccept,
+        ],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(section_selected, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "[ ] foo                                                                      [-]"
+    "  ( ) File mode set to 600                                                      "
+    "                                                                                "
+    "                                                                                "
+    "###);
+    insta::assert_snapshot!(file_selected, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] File mode set to 600                                                      "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}
+
+#[test]
 fn test_expand_scroll_into_view() -> TestResult {
     let state = example_contents();
     let before_expand = TestingScreenshot::default();

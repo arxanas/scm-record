@@ -17,6 +17,7 @@ fn make_section_changed_lines(
             is_checked: false,
             change_type,
             line: Cow::Owned(line.to_owned()),
+            group: None,
         })
         .collect()
 }
@@ -244,6 +245,7 @@ fn create_diff(old_contents: &str, new_contents: &str) -> Vec<Section<'static>> 
                         is_checked: false,
                         change_type: ChangeType::Removed,
                         line: Cow::Owned((*line).to_owned()),
+                        group: None,
                     };
                     match acc.last_mut() {
                         Some(Section::Changed { lines }) => {
@@ -259,6 +261,7 @@ fn create_diff(old_contents: &str, new_contents: &str) -> Vec<Section<'static>> 
                         is_checked: false,
                         change_type: ChangeType::Added,
                         line: Cow::Owned((*line).to_owned()),
+                        group: None,
                     };
                     match acc.last_mut() {
                         Some(Section::Changed { lines }) => {
@@ -457,6 +460,7 @@ fn create_merge(
                             is_checked: false,
                             change_type,
                             line,
+                            group: None,
                         })
                         .collect(),
                 };

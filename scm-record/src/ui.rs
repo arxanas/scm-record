@@ -865,6 +865,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
     ) -> AppView<'state> {
         let RecordState {
             is_read_only,
+            status_message,
             commits,
             files,
         } = &self.state;
@@ -895,9 +896,11 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 })
                 .collect(),
         };
+        let status_bar = status_message.as_ref().map(|message| StatusBar { message });
         AppView {
             debug_info: None,
             menu_bar,
+            status_bar,
             commit_view_mode: self.commit_view_mode,
             commit_views,
             quit_dialog: self.quit_dialog.clone(),
@@ -1260,6 +1263,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             files: _,
             commits,
             is_read_only: _,
+            status_message: _,
         } = &self.state;
         Ok(commits
             .iter()
@@ -1278,6 +1282,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             files,
             commits: _,
             is_read_only: _,
+            status_message: _,
         } = &self.state;
         let mut result = 0;
         for (file_idx, _file) in files.iter().enumerate() {
@@ -1691,7 +1696,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         ComponentId::App
                         | ComponentId::AppFiles
                         | ComponentId::MenuHeader
-                        | ComponentId::CommitMessageView => false,
+                        | ComponentId::CommitMessageView
+                        | ComponentId::StatusBar => false,
                         ComponentId::MenuBar
                         | ComponentId::MenuItem(_)
                         | ComponentId::Menu(_)
@@ -1720,6 +1726,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             | ComponentId::AppFiles
             | ComponentId::MenuHeader
             | ComponentId::CommitMessageView
+            | ComponentId::StatusBar
             | ComponentId::QuitDialog => StateUpdate::None,
             ComponentId::MenuBar => StateUpdate::UnfocusMenuBar,
             ComponentId::Menu(section_idx) => StateUpdate::ClickMenu {
@@ -2319,6 +2326,7 @@ enum ComponentId {
     SelectableItem(SelectionKey),
     ToggleBox(SelectionKey),
     ExpandBox(SelectionKey),
+    StatusBar,
     QuitDialog,
     QuitDialogButton(QuitDialogButtonId),
     HelpDialog,
@@ -2408,6 +2416,7 @@ struct AppDebugInfo {
 struct AppView<'a> {
     debug_info: Option<AppDebugInfo>,
     menu_bar: MenuBar<'a>,
+    status_bar: Option<StatusBar<'a>>,
     commit_view_mode: CommitViewMode,
     commit_views: Vec<CommitView<'a>>,
     quit_dialog: Option<QuitDialog>,
@@ -2425,6 +2434,7 @@ impl Component for AppView<'_> {
         let Self {
             debug_info,
             menu_bar,
+            status_bar,
             commit_view_mode,
             commit_views,
             quit_dialog,
@@ -2438,6 +2448,7 @@ impl Component for AppView<'_> {
         let viewport_rect = viewport.mask_rect();
 
         let menu_bar_height = 1usize;
+        let status_bar_height = if status_bar.is_some() { 1usize } else { 0usize };
         let commit_view_width = match commit_view_mode {
             CommitViewMode::Inline => viewport.rect().width,
             CommitViewMode::Adjacent => {
@@ -2450,7 +2461,11 @@ impl Component for AppView<'_> {
             x: viewport_rect.x,
             y: viewport_rect.y + menu_bar_height.unwrap_isize(),
             width: Some(viewport_rect.width),
-            height: None,
+            height: Some(
+                viewport_rect
+                    .height
+                    .saturating_sub(menu_bar_height + status_bar_height),
+            ),
         };
         viewport.with_mask(commit_views_mask, |viewport| {
             let mut commit_view_x = 0;
@@ -2475,6 +2490,11 @@ impl Component for AppView<'_> {
         });
 
         viewport.draw_component(x, viewport_rect.y, menu_bar);
+
+        if let Some(status_bar) = status_bar {
+            let status_bar_y = viewport_rect.y + viewport_rect.height.unwrap_isize() - 1;
+            viewport.draw_component(x, status_bar_y, status_bar);
+        }
 
         if let Some(quit_dialog) = quit_dialog {
             viewport.draw_component(0, 0, quit_dialog);
@@ -2748,6 +2768,39 @@ impl Component for MenuBar<'_> {
             }
             x += rect.width.unwrap_isize() + 1;
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct StatusBar<'a> {
+    message: &'a str,
+}
+
+impl Component for StatusBar<'_> {
+    type Id = ComponentId;
+
+    fn id(&self) -> Self::Id {
+        ComponentId::StatusBar
+    }
+
+    fn draw(&self, viewport: &mut Viewport<Self::Id>, _x: isize, y: isize) {
+        let Self { message } = self;
+
+        // Use the full width of the viewport for the status bar
+        let rect = Rect {
+            x: viewport.mask_rect().x,
+            y,
+            width: viewport.mask_rect().width,
+            height: 1,
+        };
+
+        // Draw background with inverted colors for status bar
+        viewport.draw_blank(rect);
+        highlight_rect(viewport, rect);
+
+        // Draw the status message
+        let style = Style::default().add_modifier(Modifier::REVERSED);
+        viewport.draw_span(viewport.mask_rect().x, y, &Span::styled(*message, style));
     }
 }
 
@@ -3736,6 +3789,7 @@ mod tests {
 
         let state = RecordState {
             is_read_only: false,
+            status_message: None,
             commits: vec![Commit::default(), Commit::default()],
             files: vec![File {
                 old_path: None,

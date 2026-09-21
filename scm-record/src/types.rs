@@ -17,6 +17,11 @@ pub struct RecordState<'a> {
     /// changed by the user.
     pub is_read_only: bool,
 
+    /// An optional status message to display at the bottom of the screen.
+    /// This can be used to provide context or instructions to the user.
+    #[cfg_attr(feature = "serde", serde(default))]
+    pub status_message: Option<String>,
+
     /// The commits containing the selected changes. Each changed section be
     /// assigned to exactly one commit.
     ///
@@ -37,6 +42,24 @@ pub struct RecordState<'a> {
     /// The state of each file. This is rendered in order, so you may want to
     /// sort this list by path before providing it.
     pub files: Vec<File<'a>>,
+}
+
+impl RecordState<'_> {
+    /// Create a new RecordState for testing purposes.
+    #[cfg(test)]
+    pub fn for_test(
+        is_read_only: bool,
+        status_message: Option<String>,
+        commits: Vec<Commit>,
+        files: Vec<File<'_>>,
+    ) -> RecordState<'_> {
+        RecordState {
+            is_read_only,
+            status_message,
+            commits,
+            files,
+        }
+    }
 }
 
 /// An error which occurred when attempting to record changes.

@@ -14,6 +14,8 @@ type TestResult = Result<(), scm_record::RecordError>;
 fn example_contents() -> RecordState<'static> {
     RecordState {
         is_read_only: false,
+        // status_message: Some("Test status message".to_string()),
+        status_message: None,
         commits: Default::default(),
         files: vec![
             File {
@@ -539,6 +541,7 @@ fn test_quit_dialog_buttons() -> TestResult {
 fn test_enter_next() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![
             File {
@@ -624,6 +627,7 @@ fn test_enter_next() -> TestResult {
 fn test_file_mode_change() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![
             File {
@@ -672,6 +676,7 @@ fn test_file_mode_change() -> TestResult {
     insta::assert_debug_snapshot!(recorder.run()?, @r###"
     RecordState {
         is_read_only: false,
+        status_message: None,
         commits: [
             Commit {
                 message: None,
@@ -749,6 +754,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     let middle_length = section_length + 1;
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -932,6 +938,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
     let middle_length = num_context_lines * 2;
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1009,6 +1016,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
 fn test_record_binary_file() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1048,6 +1056,7 @@ fn test_record_binary_file() -> TestResult {
     assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        status_message: None,
         commits: [
             Commit {
                 message: None,
@@ -1111,6 +1120,7 @@ fn test_record_binary_file() -> TestResult {
 fn test_record_binary_file_noop() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1145,6 +1155,7 @@ fn test_record_binary_file_noop() -> TestResult {
     assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        status_message: None,
         commits: [
             Commit {
                 message: None,
@@ -1306,6 +1317,7 @@ fn test_mouse_support() -> TestResult {
 fn test_mouse_click_checkbox() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![
             File {
@@ -1371,6 +1383,7 @@ fn test_mouse_click_checkbox() -> TestResult {
 fn test_mouse_click_wide_line() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1460,6 +1473,7 @@ fn test_mouse_click_wide_line() -> TestResult {
 fn test_mouse_click_dialog_buttons() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1512,6 +1526,7 @@ fn test_mouse_click_dialog_buttons() -> TestResult {
 fn test_render_old_path() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: Some(Cow::Borrowed(Path::new("foo"))),
@@ -2298,6 +2313,7 @@ fn test_expand_menu() -> TestResult {
 fn test_read_only() -> TestResult {
     let state = RecordState {
         is_read_only: true,
+        status_message: None,
         ..example_contents()
     };
     let initial = TestingScreenshot::default();
@@ -2398,6 +2414,7 @@ fn test_read_only() -> TestResult {
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: true,
+        status_message: None,
         commits: [
             Commit {
                 message: None,
@@ -2552,6 +2569,7 @@ fn test_toggle_unchanged_line() -> TestResult {
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        status_message: None,
         commits: [
             Commit {
                 message: None,
@@ -2678,6 +2696,7 @@ fn test_toggle_unchanged_line() -> TestResult {
 fn test_max_file_view_width() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3545,6 +3564,7 @@ fn test_deserialize() -> TestResult {
 fn test_no_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![],
     };
@@ -3570,9 +3590,39 @@ fn test_no_files() -> TestResult {
 }
 
 #[test]
+fn test_status_message() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        status_message: Some("Test status message".to_string()),
+        commits: Default::default(),
+        files: vec![],
+    };
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        6,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "                                                                                "
+    "                    There are no changes to view.                               "
+    "                                                                                "
+    "                                                                                "
+    "Test status message                                                             "
+    "###);
+
+    Ok(())
+}
+
+#[test]
 fn test_tabs_in_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3680,6 +3730,7 @@ fn test_tabs_in_files() -> TestResult {
 fn test_carriage_return() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3763,6 +3814,7 @@ fn test_carriage_return() -> TestResult {
 fn test_some_control_characters() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3805,6 +3857,7 @@ fn test_some_control_characters() -> TestResult {
 fn test_non_printing_characters() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        status_message: None,
         commits: Default::default(),
         files: vec![File {
             old_path: None,

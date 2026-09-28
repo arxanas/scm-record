@@ -148,6 +148,10 @@ pub enum Event {
         row: usize,
         column: usize,
     },
+    /// Move the focused line's group up (swap with the previous group).
+    SwapGroupUp,
+    /// Move the focused line's group down (swap with the next group).
+    SwapGroupDown,
     ToggleCommitViewMode, // no key binding currently
     EditCommitMessage,
     Help,
@@ -292,6 +296,19 @@ impl From<crossterm::event::Event> for Event {
             }) => Self::FocusNextPage,
 
             Event::Key(KeyEvent {
+                code: KeyCode::Up,
+                modifiers: KeyModifiers::SHIFT,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::SwapGroupUp,
+            Event::Key(KeyEvent {
+                code: KeyCode::Down,
+                modifiers: KeyModifiers::SHIFT,
+                kind: KeyEventKind::Press,
+                state: _,
+            }) => Self::SwapGroupDown,
+
+            Event::Key(KeyEvent {
                 code: KeyCode::Char(' '),
                 modifiers: KeyModifiers::NONE,
                 kind: KeyEventKind::Press,
@@ -431,6 +448,8 @@ enum StateUpdate {
     SetExpandItem(SelectionKey, bool),
     ToggleExpandItem(SelectionKey),
     ToggleExpandAll,
+    SwapGroupUp(LineKey),
+    SwapGroupDown(LineKey),
     UnfocusMenuBar,
     ClickMenu {
         menu_idx: usize,
@@ -446,6 +465,12 @@ enum StateUpdate {
 enum CommitViewMode {
     Inline,
     Adjacent,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum SwapDirection {
+    Up,
+    Down,
 }
 
 #[allow(clippy::enum_variant_names)]
@@ -712,6 +737,24 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         self.toggle_expand_all()?;
                         self.pending_events.push(Event::EnsureSelectionInViewport);
                     }
+                    StateUpdate::SwapGroupUp(line_key) => {
+                        if let Some(new_line_idx) = self.swap_group(line_key, SwapDirection::Up) {
+                            self.selection_key = SelectionKey::Line(LineKey {
+                                line_idx: new_line_idx,
+                                ..line_key
+                            });
+                            self.pending_events.push(Event::EnsureSelectionInViewport);
+                        }
+                    }
+                    StateUpdate::SwapGroupDown(line_key) => {
+                        if let Some(new_line_idx) = self.swap_group(line_key, SwapDirection::Down) {
+                            self.selection_key = SelectionKey::Line(LineKey {
+                                line_idx: new_line_idx,
+                                ..line_key
+                            });
+                            self.pending_events.push(Event::EnsureSelectionInViewport);
+                        }
+                    }
                     StateUpdate::UnfocusMenuBar => {
                         self.unfocus_menu_bar();
                     }
@@ -776,6 +819,14 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         MenuItem {
                             label: Cow::Borrowed("Invert all items uniformly (A)"),
                             event: Event::ToggleAllUniform,
+                        },
+                        MenuItem {
+                            label: Cow::Borrowed("Move group up (Shift-↑)"),
+                            event: Event::SwapGroupUp,
+                        },
+                        MenuItem {
+                            label: Cow::Borrowed("Move group down (Shift-↓)"),
+                            event: Event::SwapGroupDown,
                         },
                     ],
                 },
@@ -1146,6 +1197,8 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 | Event::ToggleAllUniform
                 | Event::ExpandItem
                 | Event::ExpandAll
+                | Event::SwapGroupUp
+                | Event::SwapGroupDown
                 | Event::EditCommitMessage,
             ) => StateUpdate::None,
 
@@ -1229,6 +1282,14 @@ impl<'state, 'input> Recorder<'state, 'input> {
             (None, Event::ToggleAllUniform) => StateUpdate::ToggleAllUniform,
             (None, Event::ExpandItem) => StateUpdate::ToggleExpandItem(self.selection_key),
             (None, Event::ExpandAll) => StateUpdate::ToggleExpandAll,
+            (None, Event::SwapGroupUp) => match self.selection_key {
+                SelectionKey::Line(line_key) => StateUpdate::SwapGroupUp(line_key),
+                _ => StateUpdate::None,
+            },
+            (None, Event::SwapGroupDown) => match self.selection_key {
+                SelectionKey::Line(line_key) => StateUpdate::SwapGroupDown(line_key),
+                _ => StateUpdate::None,
+            },
             (None, Event::EditCommitMessage) => StateUpdate::EditCommitMessage {
                 commit_idx: self.focused_commit_idx,
             },
@@ -2303,6 +2364,76 @@ impl<'state, 'input> Recorder<'state, 'input> {
             }
         }
     }
+
+    /// Swap the group containing the focused line with the adjacent group in the
+    /// given direction. Returns the new `line_idx` of the focused line after the
+    /// swap, or `None` if the swap is not possible (no group, already at edge,
+    /// or read-only).
+    fn swap_group(&mut self, line_key: LineKey, direction: SwapDirection) -> Option<usize> {
+        if self.state.is_read_only {
+            return None;
+        }
+
+        let LineKey {
+            commit_idx: _,
+            file_idx,
+            section_idx,
+            line_idx,
+        } = line_key;
+        let section = &mut self.state.files[file_idx].sections[section_idx];
+        let lines = match section {
+            Section::Changed { lines } => lines,
+            _ => return None,
+        };
+
+        let focused_group = lines[line_idx].group?;
+
+        // Find the contiguous range of lines belonging to the focused group.
+        let group_start = lines[..line_idx]
+            .iter()
+            .rposition(|l| l.group != Some(focused_group))
+            .map(|i| i + 1)
+            .unwrap_or(0);
+        let group_end = lines[line_idx..]
+            .iter()
+            .position(|l| l.group != Some(focused_group))
+            .map(|i| i + line_idx)
+            .unwrap_or(lines.len());
+
+        // Find the adjacent group's range.
+        match direction {
+            SwapDirection::Up => {
+                if group_start == 0 {
+                    return None;
+                }
+                let adj_group = lines[group_start - 1].group?;
+                let adj_start = lines[..group_start - 1]
+                    .iter()
+                    .rposition(|l| l.group != Some(adj_group))
+                    .map(|i| i + 1)
+                    .unwrap_or(0);
+                // Rotate [adj_start..group_end] so the focused group comes first.
+                lines[adj_start..group_end].rotate_right(group_end - group_start);
+                let new_line_idx = line_idx - (group_start - adj_start);
+                Some(new_line_idx)
+            }
+            SwapDirection::Down => {
+                if group_end == lines.len() {
+                    return None;
+                }
+                let adj_group = lines[group_end].group?;
+                let adj_end = lines[group_end..]
+                    .iter()
+                    .position(|l| l.group != Some(adj_group))
+                    .map(|i| i + group_end)
+                    .unwrap_or(lines.len());
+                // Rotate [group_start..adj_end] so the focused group moves down.
+                lines[group_start..adj_end].rotate_left(group_end - group_start);
+                let new_line_idx = line_idx + (adj_end - group_end);
+                Some(new_line_idx)
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -3149,14 +3280,37 @@ impl Component for SectionView<'_> {
                 }
 
                 if self.is_expanded() {
-                    // Draw changed lines.
+                    // Draw changed lines, with group separators between
+                    // adjacent groups.
                     let y = y + 1;
+                    let mut dy: isize = 0;
+                    let mut prev_group: Option<usize> = None;
                     for (line_idx, line) in lines.iter().enumerate() {
                         let SectionChangedLine {
                             is_checked,
                             change_type,
                             line,
+                            group,
                         } = line;
+
+                        // Draw a separator between different groups.
+                        if let (Some(pg), Some(cg)) = (prev_group, *group) {
+                            if pg != cg {
+                                let sep_char = if *use_unicode { "╌" } else { "-" };
+                                let sep_str: String = std::iter::repeat_n(sep_char, 40).collect();
+                                viewport.draw_span(
+                                    x + 4,
+                                    y + dy,
+                                    &Span::styled(
+                                        sep_str,
+                                        Style::default().add_modifier(Modifier::DIM),
+                                    ),
+                                );
+                                dy += 1;
+                            }
+                        }
+                        prev_group = *group;
+
                         let is_focused = match selection {
                             Some(SectionSelection::ChangedLine(selected_line_idx)) => {
                                 line_idx == *selected_line_idx
@@ -3185,19 +3339,20 @@ impl Component for SectionView<'_> {
                                 line: line.as_ref(),
                             },
                         };
-                        let y = y + line_idx.unwrap_isize();
-                        viewport.draw_component(x + 2, y, &line_view);
+                        let line_y = y + dy;
+                        viewport.draw_component(x + 2, line_y, &line_view);
                         if is_focused {
                             highlight_rect(
                                 viewport,
                                 Rect {
                                     x: viewport.mask_rect().x,
-                                    y,
+                                    y: line_y,
                                     width: viewport.mask_rect().width,
                                     height: 1,
                                 },
                             );
                         }
+                        dy += 1;
                     }
                 }
             }
@@ -3582,6 +3737,13 @@ impl Component for HelpDialog {
             Line::from("    Toggle and advance      Enter       Previous/Next page      ^u/^d"),
             Line::from("    Invert all              a"),
             Line::from("    Invert all uniformly    A"),
+            Line::from(""),
+            Line::from(vec![
+                Span::raw("    "),
+                Span::styled("Reordering", Style::new().bold().underlined()),
+            ]),
+            Line::from("    Move group up           Shift-↑"),
+            Line::from("    Move group down         Shift-↓"),
         ]);
 
         let quit_button = Button {

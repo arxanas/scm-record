@@ -279,6 +279,7 @@ impl File<'_> {
                             is_checked,
                             change_type,
                             line,
+                            group: _,
                         } = line;
                         match (change_type, is_checked) {
                             (ChangeType::Added, true) | (ChangeType::Removed, false) => {
@@ -587,4 +588,16 @@ pub struct SectionChangedLine<'a> {
     /// The contents of the line, including its trailing newline character(s),
     /// if any.
     pub line: Cow<'a, str>,
+
+    /// Optional group identifier for reordering lines as a unit.
+    ///
+    /// When set, lines with the same group value form a movable unit within the
+    /// section. Groups can be reordered relative to each other, but individual
+    /// lines within a group cannot be separated. When `None`, the line is not
+    /// part of any group and behaves as before (no reordering).
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    pub group: Option<usize>,
 }

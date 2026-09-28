@@ -2,7 +2,7 @@
 
 use std::{collections::VecDeque, time::Duration};
 
-use crate::{Event, RecordError, RecordInput, TerminalKind};
+use crate::{Event, EventTextEntry, RecordError, RecordInput, TerminalKind};
 
 /// Generate a one-line description of a binary file change.
 pub fn make_binary_description(hash: &str, num_bytes: u64) -> String {
@@ -13,7 +13,10 @@ pub fn make_binary_description(hash: &str, num_bytes: u64) -> String {
 ///
 /// Its default implementation of `edit_commit_message` returns the provided
 /// message unchanged.
-pub struct CrosstermInput;
+#[derive(Default)]
+pub struct CrosstermInput {
+    input_entry: bool,
+}
 
 impl RecordInput for CrosstermInput {
     fn terminal_kind(&self) -> TerminalKind {
@@ -24,7 +27,7 @@ impl RecordInput for CrosstermInput {
         // Ensure we block for at least one event.
         let first_event =
             crossterm::event::read().map_err(|err| RecordError::ReadInput(err.into()))?;
-        let mut events = vec![first_event.into()];
+        let mut events = vec![self.parse_event(first_event)];
         // Some events, like scrolling, are generated more quickly than
         // we can render the UI. In those cases, batch up all available
         // events and process them before the next render.
@@ -40,6 +43,36 @@ impl RecordInput for CrosstermInput {
 
     fn edit_commit_message(&mut self, message: &str) -> Result<String, RecordError> {
         Ok(message.to_owned())
+    }
+
+    fn enable_input_entry(&mut self) {
+        self.input_entry = true;
+    }
+
+    fn disable_input_entry(&mut self) {
+        self.input_entry = false;
+    }
+}
+
+impl CrosstermInput {
+    fn parse_event(&self, event: crossterm::event::Event) -> Event {
+        if self.input_entry {
+            if let crossterm::event::Event::Key(crossterm::event::KeyEvent {
+                code,
+                modifiers:
+                    crossterm::event::KeyModifiers::NONE | crossterm::event::KeyModifiers::SHIFT,
+                kind: _,
+                state: _,
+            }) = event
+            {
+                if let Some(c) = code.as_char() {
+                    return Event::TextEntry(EventTextEntry::Char(c));
+                } else if code.is_backspace() {
+                    return Event::TextEntry(EventTextEntry::Backspace);
+                }
+            }
+        }
+        event.into()
     }
 }
 
@@ -97,4 +130,8 @@ impl RecordInput for TestingInput {
             .pop_front()
             .ok_or_else(|| RecordError::Other("No more commit messages available".to_string()))
     }
+
+    fn enable_input_entry(&mut self) {}
+
+    fn disable_input_entry(&mut self) {}
 }

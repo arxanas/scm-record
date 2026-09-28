@@ -1654,23 +1654,39 @@ impl<'state, 'input> Recorder<'state, 'input> {
         // edge of the component, not the bottom edge. Thus, we should also
         // accept the previous `SelectionKey` and use that when making the
         // decision of where to scroll.
-        let result = if viewport_top_y <= selection_top_y && selection_bottom_y < viewport_bottom_y
-        {
-            // Component is completely within the viewport, no need to scroll.
-            self.scroll_offset_y
-        } else if (
-            // Component doesn't fit in the viewport; just render the top.
-            selection_height >= viewport_height
-        ) || (
-            // Component is at least partially above the viewport.
-            selection_top_y < viewport_top_y
-        ) {
-            selection_top_y - top_margin
-        } else {
-            // Component is at least partially below the viewport. Want to satisfy:
-            // scroll_offset_y + term_height == rect_bottom_y
-            selection_bottom_y - top_margin - viewport_height
-        };
+        let mut result =
+            if viewport_top_y <= selection_top_y && selection_bottom_y < viewport_bottom_y {
+                // Component is completely within the viewport, no need to scroll.
+                self.scroll_offset_y
+            } else if (
+                // Component doesn't fit in the viewport; just render the top.
+                selection_height >= viewport_height
+            ) || (
+                // Component is at least partially above the viewport.
+                selection_top_y < viewport_top_y
+            ) {
+                selection_top_y - top_margin
+            } else {
+                // Component is at least partially below the viewport. Want to satisfy:
+                // scroll_offset_y + term_height == rect_bottom_y
+                selection_bottom_y - top_margin - viewport_height
+            };
+
+        // Ensure we always have some space between the selection line and the
+        // top and bottom edges, to give the user context.
+        if let Some(selection_line_y) = self.selection_key_y(drawn_rects, selection_key) {
+            const MIN_EDGE_DIST: isize = 6;
+            let bottom_dist = viewport_bottom_y - selection_line_y;
+            let top_dist = selection_line_y - (viewport_top_y + top_margin);
+            if bottom_dist < MIN_EDGE_DIST {
+                // Not clamping this just results in some empty lines being shown below the code.
+                result += MIN_EDGE_DIST - bottom_dist;
+            } else if top_dist < MIN_EDGE_DIST {
+                // Clamp so that the first line does not jump down from the
+                // initial position when the user starts navigating.
+                result = std::cmp::max(result - (MIN_EDGE_DIST - top_dist), 0);
+            }
+        }
         Some(result)
     }
 

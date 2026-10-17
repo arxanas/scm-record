@@ -54,12 +54,30 @@ qux2
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "foo\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "foo",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "qux1\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "qux1",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -74,12 +92,30 @@ qux2
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "bar\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "bar",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "qux2\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "qux2",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -242,7 +278,12 @@ fn test_diff_absent_left() -> Result<()> {
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "right\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "right\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -324,7 +365,12 @@ fn test_diff_absent_right() -> Result<()> {
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "left\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "left\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -590,17 +636,32 @@ Hello world 4
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world L\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world L\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "Hello world 3\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world 3\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world R\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world R\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -723,12 +784,22 @@ Hello world 2
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world 1\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world 1\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world 2\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world 2\n",
+                                ),
+                            ],
                         },
                     ],
                 },

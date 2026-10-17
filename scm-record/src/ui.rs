@@ -3155,7 +3155,7 @@ impl Component for SectionView<'_> {
                         let SectionChangedLine {
                             is_checked,
                             change_type,
-                            line,
+                            pieces,
                         } = line;
                         let is_focused = match selection {
                             Some(SectionSelection::ChangedLine(selected_line_idx)) => {
@@ -3182,7 +3182,7 @@ impl Component for SectionView<'_> {
                             inner: SectionLineViewInner::Changed {
                                 toggle_box,
                                 change_type: *change_type,
-                                line: line.as_ref(),
+                                pieces: pieces.as_slice(),
                             },
                         };
                         let y = y + line_idx.unwrap_isize();
@@ -3314,7 +3314,7 @@ enum SectionLineViewInner<'a> {
     Changed {
         toggle_box: TristateBox<ComponentId>,
         change_type: ChangeType,
-        line: &'a str,
+        pieces: &'a [(bool, Cow<'a, str>)],
     },
 }
 
@@ -3368,26 +3368,42 @@ fn replace_control_character(character: char) -> Option<&'static str> {
     }
 }
 
-/// Split the line into a sequence of [`Span`]s where control characters are
-/// replaced with styled [`Span`]'s and push them to the [`spans`] argument.
-fn push_spans_from_line<'line>(line: &'line str, spans: &mut Vec<Span<'line>>) {
+/// Convert the pieces into a sequence of [`Span`]s, replacing control
+/// characters with styled replacements and applying emphasis where present.
+fn push_spans_from_pieces<'line>(
+    pieces: &'line [(bool, Cow<'line, str>)],
+    spans: &mut Vec<Span<'line>>,
+) {
     const CONTROL_CHARACTER_STYLE: Style = Style::new().fg(Color::DarkGray);
+    const EMPHASIS_STYLE: Style = Style::new().add_modifier(Modifier::UNDERLINED);
 
-    let mut last_index = 0;
-    // Find index of the start of each character to replace
-    for (idx, char) in line.match_indices(|char| replace_control_character(char).is_some()) {
-        // Push the string leading up to the character and the styled replacement string
-        if let Some(replacement_string) = char.chars().next().and_then(replace_control_character) {
-            spans.push(Span::raw(&line[last_index..idx]));
-            spans.push(Span::styled(replacement_string, CONTROL_CHARACTER_STYLE));
-            // Move the "cursor" to just after the character we're replacing
-            last_index = idx + char.len();
+    for (emphasized, text) in pieces {
+        let mut last_index = 0;
+        // Find index of the start of each character to replace
+        for (idx, char) in text.match_indices(|char| replace_control_character(char).is_some()) {
+            if *emphasized {
+                spans.push(Span::styled(&text[last_index..idx], EMPHASIS_STYLE));
+            } else {
+                spans.push(Span::raw(&text[last_index..idx]));
+            }
+            // Push the string leading up to the character and the styled replacement string
+            if let Some(replacement_string) =
+                char.chars().next().and_then(replace_control_character)
+            {
+                spans.push(Span::styled(replacement_string, CONTROL_CHARACTER_STYLE));
+                // Move the "cursor" to just after the character we're replacing
+                last_index = idx + char.len();
+            }
         }
-    }
-    // Append anything remaining after the last replacement
-    let remaining_line = &line[last_index..];
-    if !remaining_line.is_empty() {
-        spans.push(Span::raw(remaining_line));
+        // Append anything remaining after the last replacement
+        let remaining = &text[last_index..];
+        if !remaining.is_empty() {
+            if *emphasized {
+                spans.push(Span::styled(remaining, EMPHASIS_STYLE));
+            } else {
+                spans.push(Span::raw(remaining));
+            }
+        }
     }
 }
 
@@ -3419,7 +3435,8 @@ impl Component for SectionLineView<'_> {
                 // lines.
                 let line_number = Span::raw(format!("{line_num:5} "));
                 let mut spans = vec![line_number];
-                push_spans_from_line(line, &mut spans);
+                let pieces = [(false, Cow::Borrowed(*line))];
+                push_spans_from_pieces(&pieces, &mut spans);
 
                 const UI_UNCHANGED_STYLE: Style = Style::new().add_modifier(Modifier::DIM);
                 viewport.draw_text(x, y, Line::from(spans).style(UI_UNCHANGED_STYLE));
@@ -3428,7 +3445,7 @@ impl Component for SectionLineView<'_> {
             SectionLineViewInner::Changed {
                 toggle_box,
                 change_type,
-                line,
+                pieces,
             } => {
                 let toggle_box_rect = viewport.draw_component(x, y, toggle_box);
                 let x = toggle_box_rect.end_x() + 1;
@@ -3439,7 +3456,7 @@ impl Component for SectionLineView<'_> {
                 };
 
                 let mut spans = vec![Span::raw(change_type_text)];
-                push_spans_from_line(line, &mut spans);
+                push_spans_from_pieces(pieces, &mut spans);
 
                 viewport.draw_text(x, y, Line::from(spans).style(changed_line_style));
             }
@@ -3751,7 +3768,7 @@ mod tests {
 
     fn test_push_lines_from_span_impl(line: &str) {
         let mut spans = Vec::new();
-        push_spans_from_line(line, &mut spans); // assert no panic
+        push_spans_from_pieces(&[(false, Cow::Borrowed(line))], &mut spans); // assert no panic
     }
 
     proptest::proptest! {

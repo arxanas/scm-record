@@ -10,12 +10,12 @@ use scm_record::{
 fn bench_record(c: &mut Criterion) {
     c.bench_function("scm_record: toggle line", |b| {
         let before_line = SectionChangedLine {
-            line: Cow::Borrowed("foo"),
+            pieces: vec![(false, Cow::Borrowed("foo"))],
             is_checked: false,
             change_type: ChangeType::Removed,
         };
         let after_line = SectionChangedLine {
-            line: Cow::Borrowed("foo"),
+            pieces: vec![(false, Cow::Borrowed("foo"))],
             is_checked: false,
             change_type: ChangeType::Added,
         };

@@ -278,14 +278,15 @@ impl File<'_> {
                         let SectionChangedLine {
                             is_checked,
                             change_type,
-                            line,
+                            pieces: _,
                         } = line;
+                        let line = line.line();
                         match (change_type, is_checked) {
                             (ChangeType::Added, true) | (ChangeType::Removed, false) => {
-                                acc_selected.push_str(line);
+                                acc_selected.push_str(&line);
                             }
                             (ChangeType::Added, false) | (ChangeType::Removed, true) => {
-                                acc_unselected.push_str(line);
+                                acc_unselected.push_str(&line);
 
                                 // Ensure that if the file existed before and still does, that
                                 // we never report Unchanged for the selected contents in the case
@@ -584,7 +585,13 @@ pub struct SectionChangedLine<'a> {
     /// The type of change this line was.
     pub change_type: ChangeType,
 
-    /// The contents of the line, including its trailing newline character(s),
-    /// if any.
-    pub line: Cow<'a, str>,
+    /// The line split into pieces: (is_emphasized, text).
+    pub pieces: Vec<(bool, Cow<'a, str>)>,
+}
+
+impl SectionChangedLine<'_> {
+    /// Reconstruct the full line text from its pieces.
+    pub fn line(&self) -> String {
+        self.pieces.iter().map(|(_, text)| text.as_ref()).collect()
+    }
 }

@@ -19,7 +19,7 @@ fn make_section_changed_lines(
         .map(|line| SectionChangedLine {
             is_checked: false,
             change_type,
-            line: Cow::Owned(line.to_owned()),
+            pieces: vec![(false, Cow::Owned(line.to_owned()))],
         })
         .collect()
 }
@@ -218,42 +218,55 @@ pub fn create_merge_file(
 fn create_diff(old_contents: &str, new_contents: &str) -> Vec<Section<'static>> {
     let diff = TextDiff::from_lines(old_contents, new_contents);
     let mut sections = Vec::new();
-    for change in diff.iter_all_changes() {
-        let line = change.value().to_owned();
-        match change.tag() {
-            ChangeTag::Equal => match sections.last_mut() {
-                Some(Section::Unchanged { lines }) => {
-                    lines.push(Cow::Owned(line));
-                }
-                _ => {
-                    sections.push(Section::Unchanged {
-                        lines: vec![Cow::Owned(line)],
-                    });
-                }
-            },
-            ChangeTag::Delete | ChangeTag::Insert => {
-                let change_type = match change.tag() {
-                    ChangeTag::Delete => ChangeType::Removed,
-                    ChangeTag::Insert => ChangeType::Added,
-                    ChangeTag::Equal => unreachable!(),
-                };
-                let line = SectionChangedLine {
-                    is_checked: false,
-                    change_type,
-                    line: Cow::Owned(line),
-                };
-                match sections.last_mut() {
-                    Some(Section::Changed { lines }) => {
-                        lines.push(line);
+    for op in diff.ops() {
+        for change in diff.iter_inline_changes(op) {
+            match change.tag() {
+                ChangeTag::Equal => {
+                    // Concatenate all pieces to get the full line
+                    let line: String = change
+                        .iter_strings_lossy()
+                        .map(|(_, value)| value.to_string())
+                        .collect();
+                    match sections.last_mut() {
+                        Some(Section::Unchanged { lines }) => {
+                            lines.push(Cow::Owned(line));
+                        }
+                        _ => {
+                            sections.push(Section::Unchanged {
+                                lines: vec![Cow::Owned(line)],
+                            });
+                        }
                     }
-                    _ => {
-                        sections.push(Section::Changed { lines: vec![line] });
+                }
+                ChangeTag::Delete | ChangeTag::Insert => {
+                    let change_type = match change.tag() {
+                        ChangeTag::Delete => ChangeType::Removed,
+                        ChangeTag::Insert => ChangeType::Added,
+                        ChangeTag::Equal => unreachable!(),
+                    };
+
+                    let pieces = change
+                        .iter_strings_lossy()
+                        .map(|(emphasized, value)| (emphasized, Cow::Owned(value.into_owned())))
+                        .collect();
+                    let line = SectionChangedLine {
+                        is_checked: false,
+                        change_type,
+                        pieces,
+                    };
+
+                    match sections.last_mut() {
+                        Some(Section::Changed { lines }) => {
+                            lines.push(line);
+                        }
+                        _ => {
+                            sections.push(Section::Changed { lines: vec![line] });
+                        }
                     }
                 }
             }
         }
     }
-
     sections
 }
 
@@ -436,7 +449,7 @@ fn create_merge(
                         .map(|(line, change_type)| SectionChangedLine {
                             is_checked: false,
                             change_type,
-                            line,
+                            pieces: vec![(false, line)],
                         })
                         .collect(),
                 };

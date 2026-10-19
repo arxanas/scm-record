@@ -865,6 +865,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
     ) -> AppView<'state> {
         let RecordState {
             is_read_only,
+            emphasize: _,
             commits,
             files,
         } = &self.state;
@@ -881,6 +882,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                         files,
                         &debug_info,
                         *is_read_only,
+                        self.state.emphasize,
                     ),
                 }]
             }
@@ -891,7 +893,13 @@ impl<'state, 'input> Recorder<'state, 'input> {
                 .map(|(commit_idx, commit)| CommitView {
                     debug_info: None,
                     commit_message_view: CommitMessageView { commit_idx, commit },
-                    file_views: self.make_file_views(commit_idx, files, &debug_info, *is_read_only),
+                    file_views: self.make_file_views(
+                        commit_idx,
+                        files,
+                        &debug_info,
+                        *is_read_only,
+                        self.state.emphasize,
+                    ),
                 })
                 .collect(),
         };
@@ -911,6 +919,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
         files: &'state [File<'state>],
         debug_info: &Option<AppDebugInfo>,
         is_read_only: bool,
+        emphasize: bool,
     ) -> Vec<FileView<'state>> {
         files
             .iter()
@@ -984,6 +993,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
                             section_views.push(SectionView {
                                 use_unicode: self.use_unicode,
                                 is_read_only,
+                                emphasize,
                                 section_key,
                                 toggle_box: TristateBox {
                                     use_unicode: self.use_unicode,
@@ -1260,6 +1270,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             files: _,
             commits,
             is_read_only: _,
+            emphasize: _,
         } = &self.state;
         Ok(commits
             .iter()
@@ -1278,6 +1289,7 @@ impl<'state, 'input> Recorder<'state, 'input> {
             files,
             commits: _,
             is_read_only: _,
+            emphasize: _,
         } = &self.state;
         let mut result = 0;
         for (file_idx, _file) in files.iter().enumerate() {
@@ -2940,6 +2952,7 @@ enum SectionSelection {
 struct SectionView<'a> {
     use_unicode: bool,
     is_read_only: bool,
+    emphasize: bool,
     section_key: SectionKey,
     toggle_box: TristateBox<ComponentId>,
     expand_box: TristateBox<ComponentId>,
@@ -2975,6 +2988,7 @@ impl Component for SectionView<'_> {
         let Self {
             use_unicode,
             is_read_only,
+            emphasize,
             section_key,
             toggle_box,
             expand_box,
@@ -3183,6 +3197,7 @@ impl Component for SectionView<'_> {
                                 toggle_box,
                                 change_type: *change_type,
                                 pieces: pieces.as_slice(),
+                                emphasize: *emphasize,
                             },
                         };
                         let y = y + line_idx.unwrap_isize();
@@ -3315,6 +3330,7 @@ enum SectionLineViewInner<'a> {
         toggle_box: TristateBox<ComponentId>,
         change_type: ChangeType,
         pieces: &'a [(bool, Cow<'a, str>)],
+        emphasize: bool,
     },
 }
 
@@ -3373,15 +3389,18 @@ fn replace_control_character(character: char) -> Option<&'static str> {
 fn push_spans_from_pieces<'line>(
     pieces: &'line [(bool, Cow<'line, str>)],
     spans: &mut Vec<Span<'line>>,
+    emphasize: bool,
 ) {
     const CONTROL_CHARACTER_STYLE: Style = Style::new().fg(Color::DarkGray);
     const EMPHASIS_STYLE: Style = Style::new().add_modifier(Modifier::UNDERLINED);
 
     for (emphasized, text) in pieces {
+        let text = text.as_ref();
+        let emphasized = *emphasized && emphasize;
         let mut last_index = 0;
         // Find index of the start of each character to replace
         for (idx, char) in text.match_indices(|char| replace_control_character(char).is_some()) {
-            if *emphasized {
+            if emphasized {
                 spans.push(Span::styled(&text[last_index..idx], EMPHASIS_STYLE));
             } else {
                 spans.push(Span::raw(&text[last_index..idx]));
@@ -3398,7 +3417,7 @@ fn push_spans_from_pieces<'line>(
         // Append anything remaining after the last replacement
         let remaining = &text[last_index..];
         if !remaining.is_empty() {
-            if *emphasized {
+            if emphasized {
                 spans.push(Span::styled(remaining, EMPHASIS_STYLE));
             } else {
                 spans.push(Span::raw(remaining));
@@ -3436,7 +3455,7 @@ impl Component for SectionLineView<'_> {
                 let line_number = Span::raw(format!("{line_num:5} "));
                 let mut spans = vec![line_number];
                 let pieces = [(false, Cow::Borrowed(*line))];
-                push_spans_from_pieces(&pieces, &mut spans);
+                push_spans_from_pieces(&pieces, &mut spans, false);
 
                 const UI_UNCHANGED_STYLE: Style = Style::new().add_modifier(Modifier::DIM);
                 viewport.draw_text(x, y, Line::from(spans).style(UI_UNCHANGED_STYLE));
@@ -3446,6 +3465,7 @@ impl Component for SectionLineView<'_> {
                 toggle_box,
                 change_type,
                 pieces,
+                emphasize,
             } => {
                 let toggle_box_rect = viewport.draw_component(x, y, toggle_box);
                 let x = toggle_box_rect.end_x() + 1;
@@ -3456,7 +3476,7 @@ impl Component for SectionLineView<'_> {
                 };
 
                 let mut spans = vec![Span::raw(change_type_text)];
-                push_spans_from_pieces(pieces, &mut spans);
+                push_spans_from_pieces(pieces, &mut spans, *emphasize);
 
                 viewport.draw_text(x, y, Line::from(spans).style(changed_line_style));
             }
@@ -3753,6 +3773,7 @@ mod tests {
 
         let state = RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: vec![Commit::default(), Commit::default()],
             files: vec![File {
                 old_path: None,
@@ -3768,7 +3789,8 @@ mod tests {
 
     fn test_push_lines_from_span_impl(line: &str) {
         let mut spans = Vec::new();
-        push_spans_from_pieces(&[(false, Cow::Borrowed(line))], &mut spans); // assert no panic
+        push_spans_from_pieces(&[(false, Cow::Borrowed(line))], &mut spans, false);
+        // assert no panic
     }
 
     proptest::proptest! {

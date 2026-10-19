@@ -17,6 +17,9 @@ pub struct RecordState<'a> {
     /// changed by the user.
     pub is_read_only: bool,
 
+    /// Enable word-level emphasis for changed lines.
+    pub emphasize: bool,
+
     /// The commits containing the selected changes. Each changed section be
     /// assigned to exactly one commit.
     ///

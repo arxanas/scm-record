@@ -14,6 +14,7 @@ type TestResult = Result<(), scm_record::RecordError>;
 fn example_contents() -> RecordState<'static> {
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -539,6 +540,7 @@ fn test_quit_dialog_buttons() -> TestResult {
 fn test_enter_next() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -624,6 +626,7 @@ fn test_enter_next() -> TestResult {
 fn test_file_mode_change() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -672,6 +675,7 @@ fn test_file_mode_change() -> TestResult {
     insta::assert_debug_snapshot!(recorder.run()?, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -749,6 +753,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     let middle_length = section_length + 1;
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -932,6 +937,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
     let middle_length = num_context_lines * 2;
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1009,6 +1015,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
 fn test_record_binary_file() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1048,6 +1055,7 @@ fn test_record_binary_file() -> TestResult {
     assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -1111,6 +1119,7 @@ fn test_record_binary_file() -> TestResult {
 fn test_record_binary_file_noop() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1145,6 +1154,7 @@ fn test_record_binary_file_noop() -> TestResult {
     assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -1306,6 +1316,7 @@ fn test_mouse_support() -> TestResult {
 fn test_mouse_click_checkbox() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -1371,6 +1382,7 @@ fn test_mouse_click_checkbox() -> TestResult {
 fn test_mouse_click_wide_line() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1460,6 +1472,7 @@ fn test_mouse_click_wide_line() -> TestResult {
 fn test_mouse_click_dialog_buttons() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1512,6 +1525,7 @@ fn test_mouse_click_dialog_buttons() -> TestResult {
 fn test_render_old_path() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: Some(Cow::Borrowed(Path::new("foo"))),
@@ -2298,6 +2312,7 @@ fn test_expand_menu() -> TestResult {
 fn test_read_only() -> TestResult {
     let state = RecordState {
         is_read_only: true,
+        emphasize: false,
         ..example_contents()
     };
     let initial = TestingScreenshot::default();
@@ -2398,6 +2413,7 @@ fn test_read_only() -> TestResult {
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: true,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -2592,6 +2608,7 @@ fn test_toggle_unchanged_line() -> TestResult {
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -2758,6 +2775,7 @@ fn test_toggle_unchanged_line() -> TestResult {
 fn test_max_file_view_width() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3625,6 +3643,7 @@ fn test_deserialize() -> TestResult {
 fn test_no_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![],
     };
@@ -3653,6 +3672,7 @@ fn test_no_files() -> TestResult {
 fn test_tabs_in_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3760,6 +3780,7 @@ fn test_tabs_in_files() -> TestResult {
 fn test_carriage_return() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3843,6 +3864,7 @@ fn test_carriage_return() -> TestResult {
 fn test_some_control_characters() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3888,6 +3910,7 @@ fn test_some_control_characters() -> TestResult {
 fn test_non_printing_characters() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,

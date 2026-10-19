@@ -391,14 +391,26 @@ fn buffer_view(buffer: &Buffer) -> String {
     for cells in buffer.content.chunks(buffer.area.width.into()) {
         let mut overwritten = vec![];
         let mut skip: usize = 0;
+        let mut in_underline = false;
         view.push('"');
         for (x, c) in cells.iter().enumerate() {
             if skip == 0 {
+                let underlined = c.style().add_modifier.contains(Modifier::UNDERLINED);
+                if underlined && !in_underline {
+                    view.push('_');
+                    in_underline = true;
+                } else if !underlined && in_underline {
+                    view.push('_');
+                    in_underline = false;
+                }
                 view.push_str(c.symbol());
             } else {
                 overwritten.push((x, c.symbol()))
             }
             skip = std::cmp::max(skip, c.symbol().width()).saturating_sub(1);
+        }
+        if in_underline {
+            view.push('_');
         }
         view.push('"');
         if !overwritten.is_empty() {
@@ -3791,6 +3803,44 @@ mod tests {
         let mut spans = Vec::new();
         push_spans_from_pieces(&[(false, Cow::Borrowed(line))], &mut spans, false);
         // assert no panic
+    }
+
+    #[test]
+    fn test_push_spans_from_pieces_emphasis() {
+        let pieces = vec![
+            (false, Cow::Borrowed("hello ")),
+            (true, Cow::Borrowed("world")),
+            (false, Cow::Borrowed(" foo\n")),
+            (true, Cow::Borrowed("tab\there\n")),
+        ];
+
+        // emphasize=false: no spans should have UNDERLINED
+        let mut spans = Vec::new();
+        push_spans_from_pieces(&pieces, &mut spans, false);
+        assert!(
+            spans
+                .iter()
+                .all(|s| !s.style.add_modifier.contains(Modifier::UNDERLINED)),
+            "expected no underlined spans when emphasize=false, got: {spans:?}"
+        );
+
+        // emphasize=true: the emphasized pieces should have UNDERLINED,
+        // but control character replacements (→   , ⏎) are never underlined.
+        let mut spans = Vec::new();
+        push_spans_from_pieces(&pieces, &mut spans, true);
+        let underlined: Vec<_> = spans
+            .iter()
+            .filter(|s| s.style.add_modifier.contains(Modifier::UNDERLINED))
+            .map(|s| s.content.as_ref().to_string())
+            .collect();
+        assert_eq!(underlined, vec!["world", "tab", "here"]);
+
+        let not_underlined: Vec<_> = spans
+            .iter()
+            .filter(|s| !s.style.add_modifier.contains(Modifier::UNDERLINED))
+            .map(|s| s.content.as_ref().to_string())
+            .collect();
+        assert_eq!(not_underlined, vec!["hello ", " foo", "⏎", "→   ", "⏎"]);
     }
 
     proptest::proptest! {

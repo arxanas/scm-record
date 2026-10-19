@@ -2877,7 +2877,7 @@ fn test_commit_message_view() -> TestResult {
     insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  (no message)                                                 "
+    "[Edit message]  •  _(no message)_                                                 "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2903,7 +2903,7 @@ fn test_commit_message_view() -> TestResult {
     insta::assert_snapshot!(after_edit, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  Hello, world!                                                "
+    "[Edit message]  •  _Hello, world!_                                                "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2928,7 +2928,7 @@ fn test_commit_message_view() -> TestResult {
     "###);
     insta::assert_snapshot!(after_scroll1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "[Edit message]  •  Hello, world!                                                "
+    "[Edit message]  •  _Hello, world!_                                                "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -3015,7 +3015,7 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     insta::assert_snapshot!(changed_message_and_files, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  hello                                                        "
+    "[Edit message]  •  _hello_                                                        "
     "                                                                                "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
@@ -3041,7 +3041,7 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     insta::assert_snapshot!(changed_message_only, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  hello                                                        "
+    "[Edit message]  •  _hello_                                                        "
     "                                                                                "
     "( ) foo/bar                                                                  (+)"
     "[ ] baz                                                                      [+]"
@@ -3941,6 +3941,64 @@ fn test_non_printing_characters() -> TestResult {
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] + zwj:�, zwnj:�                                                         "
     "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}
+
+#[test]
+fn test_emphasize() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        emphasize: true,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo")),
+            file_mode: FileMode::FILE_DEFAULT,
+            sections: vec![Section::Changed {
+                lines: vec![
+                    SectionChangedLine {
+                        is_checked: false,
+                        change_type: ChangeType::Removed,
+                        pieces: vec![
+                            (false, Cow::Borrowed("hello ")),
+                            (true, Cow::Borrowed("world")),
+                            (false, Cow::Borrowed(" foo\n")),
+                        ],
+                    },
+                    SectionChangedLine {
+                        is_checked: false,
+                        change_type: ChangeType::Added,
+                        pieces: vec![
+                            (false, Cow::Borrowed("hello ")),
+                            (true, Cow::Borrowed("universe")),
+                            (false, Cow::Borrowed(" foo\n")),
+                        ],
+                    },
+                ],
+            }],
+        }],
+    };
+
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        8,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] Section 1/1                                                            [-]"
+    "    [ ] - hello _world_ foo⏎                                                      "
+    "    [ ] + hello _universe_ foo⏎                                                   "
     "                                                                                "
     "                                                                                "
     "                                                                                "

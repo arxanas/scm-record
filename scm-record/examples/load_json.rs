@@ -31,6 +31,7 @@ fn main() {
         Ok(result) => {
             let RecordState {
                 is_read_only: _,
+                emphasize: _,
                 commits: _,
                 files,
             } = result;

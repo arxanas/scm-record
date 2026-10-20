@@ -10,18 +10,19 @@ use scm_record::{
 fn bench_record(c: &mut Criterion) {
     c.bench_function("scm_record: toggle line", |b| {
         let before_line = SectionChangedLine {
-            line: Cow::Borrowed("foo"),
+            pieces: vec![(false, Cow::Borrowed("foo"))],
             is_checked: false,
             change_type: ChangeType::Removed,
         };
         let after_line = SectionChangedLine {
-            line: Cow::Borrowed("foo"),
+            pieces: vec![(false, Cow::Borrowed("foo"))],
             is_checked: false,
             change_type: ChangeType::Added,
         };
         let record_state = RecordState {
             is_read_only: false,
             commits: Default::default(),
+            emphasize: false,
             files: vec![File {
                 old_path: None,
                 path: Cow::Borrowed(Path::new("foo")),

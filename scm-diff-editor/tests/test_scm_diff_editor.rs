@@ -36,6 +36,7 @@ qux2
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     )?;
     assert_debug_snapshot!(files, @r###"
@@ -54,12 +55,30 @@ qux2
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "foo\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "foo",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "qux1\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "qux1",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -74,12 +93,30 @@ qux2
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "bar\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "bar",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "qux2\n",
+                            pieces: [
+                                (
+                                    true,
+                                    "qux2",
+                                ),
+                                (
+                                    false,
+                                    "\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -94,6 +131,7 @@ qux2
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -157,6 +195,7 @@ qux2
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     )?;
 
@@ -165,6 +204,7 @@ qux2
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -220,6 +260,7 @@ fn test_diff_absent_left() -> Result<()> {
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     )?;
     assert_debug_snapshot!(files, @r###"
@@ -242,7 +283,12 @@ fn test_diff_absent_left() -> Result<()> {
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "right\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "right\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -257,6 +303,7 @@ fn test_diff_absent_left() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -302,6 +349,7 @@ fn test_diff_absent_right() -> Result<()> {
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     )?;
     assert_debug_snapshot!(files, @r###"
@@ -324,7 +372,12 @@ fn test_diff_absent_right() -> Result<()> {
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "left\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "left\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -339,6 +392,7 @@ fn test_diff_absent_right() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -382,6 +436,7 @@ fn test_reject_diff_non_files() -> Result<()> {
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     );
     insta::assert_debug_snapshot!(result, @r###"
@@ -416,6 +471,7 @@ fn test_diff_files_in_subdirectories() -> Result<()> {
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     )?;
 
@@ -424,6 +480,7 @@ fn test_diff_files_in_subdirectories() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -480,6 +537,7 @@ fn test_dir_diff_no_changes() -> Result<()> {
             output: None,
             read_only: false,
             dry_run: false,
+            emphasize: false,
         },
     )?;
 
@@ -488,6 +546,7 @@ fn test_dir_diff_no_changes() -> Result<()> {
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -564,6 +623,7 @@ Hello world 4
             right: "right".into(),
             read_only: false,
             dry_run: false,
+            emphasize: false,
             base: Some("base".into()),
             output: Some("output".into()),
         },
@@ -590,17 +650,32 @@ Hello world 4
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world L\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world L\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Removed,
-                            line: "Hello world 3\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world 3\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world R\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world R\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -620,6 +695,7 @@ Hello world 4
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files,
         },
@@ -699,6 +775,7 @@ Hello world 2
             right: "right".into(),
             read_only: false,
             dry_run: false,
+            emphasize: false,
             base: None,
             output: None,
         },
@@ -723,12 +800,22 @@ Hello world 2
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world 1\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world 1\n",
+                                ),
+                            ],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: Added,
-                            line: "Hello world 2\n",
+                            pieces: [
+                                (
+                                    false,
+                                    "Hello world 2\n",
+                                ),
+                            ],
                         },
                     ],
                 },
@@ -743,6 +830,7 @@ Hello world 2
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files: files.clone(),
         },
@@ -763,6 +851,7 @@ Hello world 2
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files: files.clone(),
         },
@@ -797,6 +886,7 @@ Hello world 2
         &write_root,
         RecordState {
             is_read_only: false,
+            emphasize: false,
             commits: Default::default(),
             files: files.clone(),
         },

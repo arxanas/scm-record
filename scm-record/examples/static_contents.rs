@@ -24,23 +24,23 @@ fn main() {
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("before text 1\n"),
+                            pieces: vec![(false, Cow::Borrowed("before text 1\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("before text 2\n"),
+                            pieces: vec![(false, Cow::Borrowed("before text 2\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
 
-                            line: Cow::Borrowed("after text 1\n"),
+                            pieces: vec![(false, Cow::Borrowed("after text 1\n"))],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("after text 2\n"),
+                            pieces: vec![(false, Cow::Borrowed("after text 2\n"))],
                         },
                     ],
                 },
@@ -65,22 +65,22 @@ fn main() {
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("before text 1\n"),
+                            pieces: vec![(false, Cow::Borrowed("before text 1\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("before text 2\n"),
+                            pieces: vec![(false, Cow::Borrowed("before text 2\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("after text 1\n"),
+                            pieces: vec![(false, Cow::Borrowed("after text 1\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("after text 2\n"),
+                            pieces: vec![(false, Cow::Borrowed("after text 2\n"))],
                         },
                     ],
                 },
@@ -92,6 +92,7 @@ fn main() {
     ];
     let record_state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files,
     };
@@ -102,6 +103,7 @@ fn main() {
         Ok(result) => {
             let RecordState {
                 is_read_only: _,
+                emphasize: _,
                 commits: _,
                 files,
             } = result;

@@ -14,6 +14,7 @@ type TestResult = Result<(), scm_record::RecordError>;
 fn example_contents() -> RecordState<'static> {
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -29,22 +30,22 @@ fn example_contents() -> RecordState<'static> {
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Removed,
-                                line: Cow::Borrowed("before text 1\n"),
+                                pieces: vec![(false, Cow::Borrowed("before text 1\n"))],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Removed,
-                                line: Cow::Borrowed("before text 2\n"),
+                                pieces: vec![(false, Cow::Borrowed("before text 2\n"))],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Added,
-                                line: Cow::Borrowed("after text 1\n"),
+                                pieces: vec![(false, Cow::Borrowed("after text 1\n"))],
                             },
                             SectionChangedLine {
                                 is_checked: false,
                                 change_type: ChangeType::Added,
-                                line: Cow::Borrowed("after text 2\n"),
+                                pieces: vec![(false, Cow::Borrowed("after text 2\n"))],
                             },
                         ],
                     },
@@ -69,22 +70,22 @@ fn example_contents() -> RecordState<'static> {
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Removed,
-                                line: Cow::Borrowed("before text 1\n"),
+                                pieces: vec![(false, Cow::Borrowed("before text 1\n"))],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Removed,
-                                line: Cow::Borrowed("before text 2\n"),
+                                pieces: vec![(false, Cow::Borrowed("before text 2\n"))],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Added,
-                                line: Cow::Borrowed("after text 1\n"),
+                                pieces: vec![(false, Cow::Borrowed("after text 1\n"))],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: ChangeType::Added,
-                                line: Cow::Borrowed("after text 2\n"),
+                                pieces: vec![(false, Cow::Borrowed("after text 2\n"))],
                             },
                         ],
                     },
@@ -539,6 +540,7 @@ fn test_quit_dialog_buttons() -> TestResult {
 fn test_enter_next() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -550,12 +552,12 @@ fn test_enter_next() -> TestResult {
                         SectionChangedLine {
                             is_checked: false,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("world\n"),
+                            pieces: vec![(false, Cow::Borrowed("world\n"))],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("hello\n"),
+                            pieces: vec![(false, Cow::Borrowed("hello\n"))],
                         },
                     ],
                 }],
@@ -569,12 +571,12 @@ fn test_enter_next() -> TestResult {
                         SectionChangedLine {
                             is_checked: false,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("world\n"),
+                            pieces: vec![(false, Cow::Borrowed("world\n"))],
                         },
                         SectionChangedLine {
                             is_checked: false,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("hello\n"),
+                            pieces: vec![(false, Cow::Borrowed("hello\n"))],
                         },
                     ],
                 }],
@@ -624,6 +626,7 @@ fn test_enter_next() -> TestResult {
 fn test_file_mode_change() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -672,6 +675,7 @@ fn test_file_mode_change() -> TestResult {
     insta::assert_debug_snapshot!(recorder.run()?, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -749,6 +753,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
     let middle_length = section_length + 1;
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -764,7 +769,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Added,
-                        line: Cow::Borrowed("changed\n"),
+                        pieces: vec![(false, Cow::Borrowed("changed\n"))],
                     }],
                 },
                 Section::Unchanged {
@@ -776,7 +781,7 @@ fn test_abbreviate_unchanged_sections() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Added,
-                        line: Cow::Borrowed("changed\n"),
+                        pieces: vec![(false, Cow::Borrowed("changed\n"))],
                     }],
                 },
                 Section::Unchanged {
@@ -932,6 +937,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
     let middle_length = num_context_lines * 2;
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -947,7 +953,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Added,
-                        line: Cow::Borrowed("changed\n"),
+                        pieces: vec![(false, Cow::Borrowed("changed\n"))],
                     }],
                 },
                 Section::Unchanged {
@@ -959,7 +965,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Added,
-                        line: Cow::Borrowed("changed\n"),
+                        pieces: vec![(false, Cow::Borrowed("changed\n"))],
                     }],
                 },
                 Section::Unchanged {
@@ -1009,6 +1015,7 @@ fn test_no_abbreviate_short_unchanged_sections() -> TestResult {
 fn test_record_binary_file() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1048,6 +1055,7 @@ fn test_record_binary_file() -> TestResult {
     assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -1111,6 +1119,7 @@ fn test_record_binary_file() -> TestResult {
 fn test_record_binary_file_noop() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1145,6 +1154,7 @@ fn test_record_binary_file_noop() -> TestResult {
     assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -1216,7 +1226,7 @@ fn test_state_binary_selected_contents() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked,
                         change_type: ChangeType::Removed,
-                        line: Cow::Borrowed("foo\n"),
+                        pieces: vec![(false, Cow::Borrowed("foo\n"))],
                     }],
                 },
                 Section::Binary {
@@ -1306,6 +1316,7 @@ fn test_mouse_support() -> TestResult {
 fn test_mouse_click_checkbox() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![
             File {
@@ -1371,6 +1382,7 @@ fn test_mouse_click_checkbox() -> TestResult {
 fn test_mouse_click_wide_line() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1385,7 +1397,7 @@ fn test_mouse_click_wide_line() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Removed,
-                        line: Cow::Borrowed("foo\n"),
+                        pieces: vec![(false, Cow::Borrowed("foo\n"))],
                     }],
                 },
             ],
@@ -1460,6 +1472,7 @@ fn test_mouse_click_wide_line() -> TestResult {
 fn test_mouse_click_dialog_buttons() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -1469,7 +1482,7 @@ fn test_mouse_click_dialog_buttons() -> TestResult {
                 lines: vec![SectionChangedLine {
                     is_checked: true,
                     change_type: ChangeType::Removed,
-                    line: Cow::Borrowed("foo\n"),
+                    pieces: vec![(false, Cow::Borrowed("foo\n"))],
                 }],
             }],
         }],
@@ -1512,6 +1525,7 @@ fn test_mouse_click_dialog_buttons() -> TestResult {
 fn test_render_old_path() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: Some(Cow::Borrowed(Path::new("foo"))),
@@ -2298,6 +2312,7 @@ fn test_expand_menu() -> TestResult {
 fn test_read_only() -> TestResult {
     let state = RecordState {
         is_read_only: true,
+        emphasize: false,
         ..example_contents()
     };
     let initial = TestingScreenshot::default();
@@ -2398,6 +2413,7 @@ fn test_read_only() -> TestResult {
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: true,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -2443,22 +2459,42 @@ fn test_read_only() -> TestResult {
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 2\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Added,
-                                line: "after text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: false,
                                 change_type: Added,
-                                line: "after text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 2\n",
+                                    ),
+                                ],
                             },
                         ],
                     },
@@ -2487,22 +2523,42 @@ fn test_read_only() -> TestResult {
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 2\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Added,
-                                line: "after text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Added,
-                                line: "after text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 2\n",
+                                    ),
+                                ],
                             },
                         ],
                     },
@@ -2552,6 +2608,7 @@ fn test_toggle_unchanged_line() -> TestResult {
     insta::assert_debug_snapshot!(state, @r###"
     RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: [
             Commit {
                 message: None,
@@ -2597,22 +2654,42 @@ fn test_toggle_unchanged_line() -> TestResult {
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 2\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Added,
-                                line: "after text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: false,
                                 change_type: Added,
-                                line: "after text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 2\n",
+                                    ),
+                                ],
                             },
                         ],
                     },
@@ -2641,22 +2718,42 @@ fn test_toggle_unchanged_line() -> TestResult {
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Removed,
-                                line: "before text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "before text 2\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Added,
-                                line: "after text 1\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 1\n",
+                                    ),
+                                ],
                             },
                             SectionChangedLine {
                                 is_checked: true,
                                 change_type: Added,
-                                line: "after text 2\n",
+                                pieces: [
+                                    (
+                                        false,
+                                        "after text 2\n",
+                                    ),
+                                ],
                             },
                         ],
                     },
@@ -2678,6 +2775,7 @@ fn test_toggle_unchanged_line() -> TestResult {
 fn test_max_file_view_width() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -2691,7 +2789,7 @@ fn test_max_file_view_width() -> TestResult {
                     lines: vec![SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Added,
-                        line: Cow::Owned("very ".repeat(100)),
+                        pieces: vec![(false, Cow::Owned("very ".repeat(100)))],
                     }],
                 },
             ],
@@ -2779,7 +2877,7 @@ fn test_commit_message_view() -> TestResult {
     insta::assert_snapshot!(initial, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  (no message)                                                 "
+    "[Edit message]  •  _(no message)_                                                 "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2805,7 +2903,7 @@ fn test_commit_message_view() -> TestResult {
     insta::assert_snapshot!(after_edit, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  Hello, world!                                                "
+    "[Edit message]  •  _Hello, world!_                                                "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2830,7 +2928,7 @@ fn test_commit_message_view() -> TestResult {
     "###);
     insta::assert_snapshot!(after_scroll1, @r###"
     "[File] [Edit] [Select] [View]                                                   "
-    "[Edit message]  •  Hello, world!                                                "
+    "[Edit message]  •  _Hello, world!_                                                "
     "                                                                                "
     "(◐) foo/bar                                                                  (-)"
     "        ⋮                                                                       "
@@ -2917,7 +3015,7 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     insta::assert_snapshot!(changed_message_and_files, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  hello                                                        "
+    "[Edit message]  •  _hello_                                                        "
     "                                                                                "
     "(◐) foo/bar                                                                  (+)"
     "[●] baz                                                                      [+]"
@@ -2943,7 +3041,7 @@ fn test_quit_dialog_when_commit_message_provided() -> TestResult {
     insta::assert_snapshot!(changed_message_only, @r###"
     "[File] [Edit] [Select] [View]                                                   "
     "                                                                                "
-    "[Edit message]  •  hello                                                        "
+    "[Edit message]  •  _hello_                                                        "
     "                                                                                "
     "( ) foo/bar                                                                  (+)"
     "[ ] baz                                                                      [+]"
@@ -3545,6 +3643,7 @@ fn test_deserialize() -> TestResult {
 fn test_no_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![],
     };
@@ -3573,6 +3672,7 @@ fn test_no_files() -> TestResult {
 fn test_tabs_in_files() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3588,52 +3688,52 @@ fn test_tabs_in_files() -> TestResult {
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("before text\t1\n"),
+                            pieces: vec![(false, Cow::Borrowed("before text\t1\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("after text 1\n"),
+                            pieces: vec![(false, Cow::Borrowed("after text 1\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("before text 2\n"),
+                            pieces: vec![(false, Cow::Borrowed("before text 2\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("after text\t2\n"),
+                            pieces: vec![(false, Cow::Borrowed("after text\t2\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("\tbefore text 3\n"),
+                            pieces: vec![(false, Cow::Borrowed("\tbefore text 3\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("\tafter text\t3\n"),
+                            pieces: vec![(false, Cow::Borrowed("\tafter text\t3\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("\tbefore text\t4\n"),
+                            pieces: vec![(false, Cow::Borrowed("\tbefore text\t4\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("\tafter text 4\n"),
+                            pieces: vec![(false, Cow::Borrowed("\tafter text 4\n"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Removed,
-                            line: Cow::Borrowed("\tbefore text\t5"),
+                            pieces: vec![(false, Cow::Borrowed("\tbefore text\t5"))],
                         },
                         SectionChangedLine {
                             is_checked: true,
                             change_type: ChangeType::Added,
-                            line: Cow::Borrowed("\tafter text\t5"),
+                            pieces: vec![(false, Cow::Borrowed("\tafter text\t5"))],
                         },
                     ],
                 },
@@ -3680,6 +3780,7 @@ fn test_tabs_in_files() -> TestResult {
 fn test_carriage_return() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3690,12 +3791,12 @@ fn test_carriage_return() -> TestResult {
                     SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Removed,
-                        line: Cow::Borrowed("before text\n"),
+                        pieces: vec![(false, Cow::Borrowed("before text\n"))],
                     },
                     SectionChangedLine {
                         is_checked: false,
                         change_type: ChangeType::Added,
-                        line: Cow::Borrowed("before text\r\n"),
+                        pieces: vec![(false, Cow::Borrowed("before text\r\n"))],
                     },
                 ],
             }],
@@ -3763,6 +3864,7 @@ fn test_carriage_return() -> TestResult {
 fn test_some_control_characters() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3772,7 +3874,10 @@ fn test_some_control_characters() -> TestResult {
                 lines: vec![SectionChangedLine {
                     is_checked: false,
                     change_type: ChangeType::Added,
-                    line: Cow::Borrowed("nul:\0, bel:\x07, esc:\x1b, del:\x7f\n"),
+                    pieces: vec![(
+                        false,
+                        Cow::Borrowed("nul:\0, bel:\x07, esc:\x1b, del:\x7f\n"),
+                    )],
                 }],
             }],
         }],
@@ -3805,6 +3910,7 @@ fn test_some_control_characters() -> TestResult {
 fn test_non_printing_characters() -> TestResult {
     let state = RecordState {
         is_read_only: false,
+        emphasize: false,
         commits: Default::default(),
         files: vec![File {
             old_path: None,
@@ -3814,7 +3920,7 @@ fn test_non_printing_characters() -> TestResult {
                 lines: vec![SectionChangedLine {
                     is_checked: false,
                     change_type: ChangeType::Added,
-                    line: Cow::Borrowed("zwj:\u{200d}, zwnj:\u{200c}"),
+                    pieces: vec![(false, Cow::Borrowed("zwj:\u{200d}, zwnj:\u{200c}"))],
                 }],
             }],
         }],
@@ -3835,6 +3941,64 @@ fn test_non_printing_characters() -> TestResult {
     "  [ ] Section 1/1                                                            [-]"
     "    [ ] + zwj:�, zwnj:�                                                         "
     "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "                                                                                "
+    "###);
+
+    Ok(())
+}
+
+#[test]
+fn test_emphasize() -> TestResult {
+    let state = RecordState {
+        is_read_only: false,
+        emphasize: true,
+        commits: Default::default(),
+        files: vec![File {
+            old_path: None,
+            path: Cow::Borrowed(Path::new("foo")),
+            file_mode: FileMode::FILE_DEFAULT,
+            sections: vec![Section::Changed {
+                lines: vec![
+                    SectionChangedLine {
+                        is_checked: false,
+                        change_type: ChangeType::Removed,
+                        pieces: vec![
+                            (false, Cow::Borrowed("hello ")),
+                            (true, Cow::Borrowed("world")),
+                            (false, Cow::Borrowed(" foo\n")),
+                        ],
+                    },
+                    SectionChangedLine {
+                        is_checked: false,
+                        change_type: ChangeType::Added,
+                        pieces: vec![
+                            (false, Cow::Borrowed("hello ")),
+                            (true, Cow::Borrowed("universe")),
+                            (false, Cow::Borrowed(" foo\n")),
+                        ],
+                    },
+                ],
+            }],
+        }],
+    };
+
+    let initial = TestingScreenshot::default();
+    let mut input = TestingInput::new(
+        80,
+        8,
+        [Event::ExpandAll, initial.event(), Event::QuitAccept],
+    );
+    let recorder = Recorder::new(state, &mut input);
+    recorder.run()?;
+
+    insta::assert_snapshot!(initial, @r###"
+    "[File] [Edit] [Select] [View]                                                   "
+    "( ) foo                                                                      (-)"
+    "  [ ] Section 1/1                                                            [-]"
+    "    [ ] - hello _world_ foo⏎                                                      "
+    "    [ ] + hello _universe_ foo⏎                                                   "
     "                                                                                "
     "                                                                                "
     "                                                                                "

@@ -1,5 +1,6 @@
 {
   "is_read_only": false,
+  "emphasize": false,
   "commits": [],
   "files": [
     {
@@ -38,22 +39,22 @@
               {
                 "is_checked": true,
                 "change_type": "Removed",
-                "line": "before text 1\n"
+                "pieces": [[false, "before text 1\n"]]
               },
               {
                 "is_checked": true,
                 "change_type": "Removed",
-                "line": "before text 2\n"
+                "pieces": [[false, "before text 2\n"]]
               },
               {
                 "is_checked": true,
                 "change_type": "Added",
-                "line": "after text 1\n"
+                "pieces": [[false, "after text 1\n"]]
               },
               {
                 "is_checked": false,
                 "change_type": "Added",
-                "line": "after text 2\n"
+                "pieces": [[false, "after text 2\n"]]
               }
             ]
           }
@@ -80,22 +81,22 @@
               {
                 "is_checked": true,
                 "change_type": "Removed",
-                "line": "before text 1\n"
+                "pieces": [[false, "before text 1\n"]]
               },
               {
                 "is_checked": true,
                 "change_type": "Removed",
-                "line": "before text 2\n"
+                "pieces": [[false, "before text 2\n"]]
               },
               {
                 "is_checked": true,
                 "change_type": "Added",
-                "line": "after text 1\n"
+                "pieces": [[false, "after text 1\n"]]
               },
               {
                 "is_checked": true,
                 "change_type": "Added",
-                "line": "after text 2\n"
+                "pieces": [[false, "after text 2\n"]]
               }
             ]
           }

@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
 
+use similar::merge::{ConflictStyle, TextMerge};
+use similar::{ChangeTag, TextDiff};
+
 use scm_record::helpers::make_binary_description;
 use scm_record::{ChangeType, File, Section, SectionChangedLine};
 use tracing::warn;
@@ -16,7 +19,7 @@ fn make_section_changed_lines(
         .map(|line| SectionChangedLine {
             is_checked: false,
             change_type,
-            line: Cow::Owned(line.to_owned()),
+            pieces: vec![(false, Cow::Owned(line.to_owned()))],
         })
         .collect()
 }
@@ -213,65 +216,56 @@ pub fn create_merge_file(
 }
 
 fn create_diff(old_contents: &str, new_contents: &str) -> Vec<Section<'static>> {
-    let patch = {
-        // Set the context length to the maximum number of lines in either file,
-        // because we will handle abbreviating context ourselves.
-        let max_lines = old_contents
-            .lines()
-            .count()
-            .max(new_contents.lines().count());
-        let mut diff_options = diffy::DiffOptions::new();
-        diff_options.set_context_len(max_lines);
-        diff_options.create_patch(old_contents, new_contents)
-    };
-
+    let diff = TextDiff::from_lines(old_contents, new_contents);
     let mut sections = Vec::new();
-    for hunk in patch.hunks() {
-        sections.extend(hunk.lines().iter().fold(Vec::new(), |mut acc, line| {
-            match line {
-                diffy::Line::Context(line) => match acc.last_mut() {
-                    Some(Section::Unchanged { lines }) => {
-                        lines.push(Cow::Owned((*line).to_owned()));
-                    }
-                    _ => {
-                        acc.push(Section::Unchanged {
-                            lines: vec![Cow::Owned((*line).to_owned())],
-                        });
-                    }
-                },
-                diffy::Line::Delete(line) => {
-                    let line = SectionChangedLine {
-                        is_checked: false,
-                        change_type: ChangeType::Removed,
-                        line: Cow::Owned((*line).to_owned()),
-                    };
-                    match acc.last_mut() {
-                        Some(Section::Changed { lines }) => {
-                            lines.push(line);
+    for op in diff.ops() {
+        for change in diff.iter_inline_changes(op) {
+            match change.tag() {
+                ChangeTag::Equal => {
+                    // Concatenate all pieces to get the full line
+                    let line: String = change
+                        .iter_strings_lossy()
+                        .map(|(_, value)| value.to_string())
+                        .collect();
+                    match sections.last_mut() {
+                        Some(Section::Unchanged { lines }) => {
+                            lines.push(Cow::Owned(line));
                         }
                         _ => {
-                            acc.push(Section::Changed { lines: vec![line] });
+                            sections.push(Section::Unchanged {
+                                lines: vec![Cow::Owned(line)],
+                            });
                         }
                     }
                 }
-                diffy::Line::Insert(line) => {
+                ChangeTag::Delete | ChangeTag::Insert => {
+                    let change_type = match change.tag() {
+                        ChangeTag::Delete => ChangeType::Removed,
+                        ChangeTag::Insert => ChangeType::Added,
+                        ChangeTag::Equal => unreachable!(),
+                    };
+
+                    let pieces = change
+                        .iter_strings_lossy()
+                        .map(|(emphasized, value)| (emphasized, Cow::Owned(value.into_owned())))
+                        .collect();
                     let line = SectionChangedLine {
                         is_checked: false,
-                        change_type: ChangeType::Added,
-                        line: Cow::Owned((*line).to_owned()),
+                        change_type,
+                        pieces,
                     };
-                    match acc.last_mut() {
+
+                    match sections.last_mut() {
                         Some(Section::Changed { lines }) => {
                             lines.push(line);
                         }
                         _ => {
-                            acc.push(Section::Changed { lines: vec![line] });
+                            sections.push(Section::Changed { lines: vec![line] });
                         }
                     }
                 }
             }
-            acc
-        }));
+        }
     }
     sections
 }
@@ -312,14 +306,13 @@ fn create_merge(
     let (left_marker, base_start_marker, base_end_marker, right_marker) =
         make_conflict_markers(base_contents, left_contents, right_contents);
 
-    let mut merge_options = diffy::MergeOptions::new();
-    merge_options.set_conflict_marker_length(right_marker.len());
-    merge_options.set_conflict_style(diffy::ConflictStyle::Diff3);
-    let merge = merge_options.merge(base_contents, left_contents, right_contents);
-    let conflicted_text = match merge {
-        Ok(_) => return Default::default(),
-        Err(conflicted_text) => conflicted_text,
-    };
+    let mut merge = TextMerge::from_lines(base_contents, left_contents, right_contents);
+    merge.conflict_style(ConflictStyle::Diff3);
+    merge.conflict_marker_size(right_marker.len());
+    if !merge.is_conflicted() {
+        return Default::default();
+    }
+    let conflicted_text = merge.to_string();
 
     enum MarkerType {
         Left,
@@ -456,7 +449,7 @@ fn create_merge(
                         .map(|(line, change_type)| SectionChangedLine {
                             is_checked: false,
                             change_type,
-                            line,
+                            pieces: vec![(false, line)],
                         })
                         .collect(),
                 };
